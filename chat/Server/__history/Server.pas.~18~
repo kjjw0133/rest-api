@@ -1,0 +1,197 @@
+unit Server;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
+  Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, System.Win.ScktComp,
+  System.Generics.Collections;
+
+type
+  TClientInfo = class
+    Socket: TCustomWinSocket;
+    RoomId: Integer;
+    NickName: string;
+  end;
+
+  TForm12 = class(TForm)
+    ServerSocket1: TServerSocket;
+    Edit1: TEdit;
+    Memo1: TMemo;
+    Button1: TButton;
+    Button2: TButton;
+    procedure FormCreate(Sender: TObject);
+    procedure ButtonStartClick(Sender: TObject);
+    procedure ButtonSendClick(Sender: TObject);
+    procedure ServerSocket1ClientConnect(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ServerSocket1ClientDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+    procedure ServerSocket1ClientRead(Sender: TObject; Socket: TCustomWinSocket);
+    procedure Button2Click(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
+  private
+    Str : String;
+    Clients: TObjectList<TClientInfo>;
+    procedure BroadcastToRoom(RoomId: Integer; const Msg: string);
+    function FindClient(Socket: TCustomWinSocket): TClientInfo;
+  public
+  end;
+
+var
+  Form12: TForm12;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm12.FormCreate(Sender: TObject);
+begin
+    ServerSocket1.Active := True;
+    Memo1.Lines.Add('Server Started');
+end;
+
+procedure TForm12.ButtonStartClick(Sender: TObject);
+begin
+  ServerSocket1.Active := not ServerSocket1.Active;
+  if ServerSocket1.Active then
+  begin
+    Memo1.Lines.Add('서버 시작 (포트 8080)');
+//    ButtonStart.Caption := '서버 중지';
+//    ButtonSend.Enabled := True;
+  end
+  else
+  begin
+    Memo1.Lines.Add('서버 중지됨');
+//    ButtonStart.Caption := '서버 시작';
+//    ButtonSend.Enabled := False;
+    Clients.Clear;
+  end;
+end;
+
+procedure TForm12.ServerSocket1ClientConnect(Sender: TObject; Socket: TCustomWinSocket);
+begin
+  Memo1.Lines.Add(Format('클라이언트 접속: %s', [Socket.RemoteAddress]));
+end;
+
+procedure TForm12.ServerSocket1ClientDisconnect(Sender: TObject; Socket: TCustomWinSocket);
+var
+  C: TClientInfo;
+begin
+  C := FindClient(Socket);
+  if C <> nil then
+  begin
+    Memo1.Lines.Add(Format('%s (%d번 방) 퇴장', [C.NickName, C.RoomId]));
+    Clients.Remove(C);
+  end;
+end;
+
+//procedure TForm12.ServerSocket1ClientRead(Sender: TObject; Socket: TCustomWinSocket);
+//var
+//  Msg, Cmd, RoomStr, Nick, Text: string;
+//  RoomId: Integer;
+//  Parts: TArray<string>;
+//  C: TClientInfo;
+//begin
+//  Msg := Socket.ReceiveText;
+//  Memo1.Lines.Add('수신: ' + Msg);
+//
+//  Parts := Msg.Split(['|']);
+//  if Length(Parts) < 2 then Exit;
+//
+//  Cmd := Parts[0];
+//
+//  if Cmd = 'JOIN' then
+//  begin
+//    if Length(Parts) < 3 then Exit;
+//    RoomStr := Parts[1];
+//    Nick := Parts[2];
+//    RoomId := StrToIntDef(RoomStr, 0);
+//
+//    C := TClientInfo.Create;
+//    C.Socket := Socket;
+//    C.RoomId := RoomId;
+//    C.NickName := Nick;
+//    Clients.Add(C);
+//
+//    Memo1.Lines.Add(Format('%s이(가) %d번 방에 입장', [Nick, RoomId]));
+//    BroadcastToRoom(RoomId, Format('%s님이 입장했습니다.', [Nick]));
+//  end
+//  else if Cmd = 'MSG' then
+//  begin
+//    if Length(Parts) < 4 then Exit;
+//    RoomId := StrToIntDef(Parts[1], 0);
+//    Nick := Parts[2];
+//    Text := Parts[3];
+//
+//    BroadcastToRoom(RoomId, Format('%s: %s', [Nick, Text]));
+//  end;
+//end;
+
+procedure TForm12.ServerSocket1ClientRead(Sender: TObject; Socket: TCustomWinSocket);
+var
+  s: string;
+  i: Integer;
+begin
+  s := Socket.ReceiveText;
+  Memo1.Lines.Add('받음: ' + Socket.ReceiveText);
+
+  // 받은 내용 브로드캐스트
+  for i := 0 to ServerSocket1.Socket.ActiveConnections - 1 do
+    ServerSocket1.Socket.Connections[i].SendText(s);
+end;
+
+procedure TForm12.BroadcastToRoom(RoomId: Integer; const Msg: string);
+var
+  C: TClientInfo;
+begin
+  for C in Clients do
+    if C.RoomId = RoomId then
+      C.Socket.SendText(Msg);
+end;
+
+function TForm12.FindClient(Socket: TCustomWinSocket): TClientInfo;
+var
+  C: TClientInfo;
+begin
+  Result := nil;
+  for C in Clients do
+    if C.Socket = Socket then
+      Exit(C);
+end;
+
+procedure TForm12.Button1Click(Sender: TObject);
+var
+  i: Integer;
+begin
+  Memo1.Lines.Add(edit1.Text);
+  Edit1.Clear;
+
+  for i := 0 to ServerSocket1.Socket.ActiveConnections - 1 do
+    ServerSocket1.Socket.Connections[i].SendText(Str);
+end;
+
+procedure TForm12.Button2Click(Sender: TObject);
+begin
+  if not ServerSocket1.Active then
+  begin
+    ServerSocket1.Active := True;
+    Memo1.Lines.Add('Server Started');
+    Button2.Caption := 'Stop';
+  end
+  else
+  begin
+    ServerSocket1.Active := False;
+    Memo1.Lines.Add('Server Stopped');
+    Button2.Caption := 'Start';
+    Button1.Enabled := False;
+    Edit1.Enabled := False;
+  end;
+end;
+
+procedure TForm12.ButtonSendClick(Sender: TObject);
+begin
+  BroadcastToRoom(0, '[서버]: ' + Edit1.Text);
+  Edit1.Clear;
+end;
+
+end.
+
