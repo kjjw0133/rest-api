@@ -16,11 +16,11 @@ object WebModule1: TWebModule1
   object FDConnection1: TFDConnection
     Params.Strings = (
       'Server=localhost'
-      'Database=chating app'
-      'User_Name=root'
-      'Password=1234'
-      'CharacterSet=utf8mb4'
-      'DriverID=MySQL')
+      'Database='
+      'User_Name='
+      'Password='
+      'CharacterSet='
+      'DriverID=')
     Connected = True
     Left = 416
     Top = 461
@@ -32,3 +32,4 @@ object WebModule1: TWebModule1
     Top = 453
   end
 end
+
