@@ -1,4 +1,4 @@
-﻿unit ServerMainUnit;
+unit ServerMainUnit;
 
 interface
 
@@ -9,7 +9,7 @@ uses
   FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys,
   FireDAC.Phys.MySQL, FireDAC.ConsoleUI.Wait, FireDAC.Stan.Param, FireDAC.DatS,
   FireDAC.DApt.Intf, FireDAC.DApt, Data.DB, FireDAC.Comp.DataSet,
-  FireDAC.Comp.Client, Datasnap.DBClient,System.IOUtils;
+  FireDAC.Comp.Client, Datasnap.DBClient,System.IOUtils, FireDAC.VCLUI.Wait;
 
 type
   TWebModule1 = class(TWebModule)
@@ -34,7 +34,7 @@ var
 
 implementation
 
-{%CLASSGROUP 'System.Classes.TPersistent'}
+{%CLASSGROUP 'Vcl.Controls.TControl'}
 
 {$R *.dfm}
 
@@ -417,7 +417,6 @@ begin
       FDQuery1.Open;
 
       if not FDQuery1.Eof then
-
       begin
         JsonObj.AddPair('id', TJSONNumber.Create(FDQuery1.FieldByName('id').AsInteger));
         JsonObj.AddPair('username', FDQuery1.FieldByName('username').AsWideString);
@@ -489,6 +488,70 @@ begin
     end;
   end
 
+    // PATCH /api/users/{id} - 일부 정보만 수정
+  else if (Request.MethodType = mtPatch) and PathInfo.StartsWith('/api/users/') then
+  begin
+    UserId := PathInfo.Replace('/api/users/', '');
+    JsonObj := TJSONObject.ParseJSONValue(Request.Content) as TJSONObject;
+    if JsonObj = nil then
+    begin
+      Response.StatusCode := 400;
+      Response.Content := '{"error": "Invalid JSON"}';
+      Exit;
+    end;
+
+    try
+      ResultObj := TJSONObject.Create;
+      try
+        // 기존 값 조회
+        FDQuery1.Close;
+        FDQuery1.SQL.Text :=
+          'SELECT username, password, name, email, phone FROM users WHERE id = :id';
+        FDQuery1.ParamByName('id').AsInteger := StrToIntDef(UserId, 0);
+        FDQuery1.Open;
+
+        if FDQuery1.Eof then
+        begin
+          ResultObj.AddPair('error', '사용자를 찾을 수 없습니다');
+          Response.StatusCode := 404;
+          Response.Content := ResultObj.ToJSON;
+          Exit;
+        end;
+
+        // 기존값 유지 + PATCH 값만 업데이트
+        var NewUsername  := FDQuery1.FieldByName('username').AsString;
+        var NewPassword  := FDQuery1.FieldByName('password').AsString;
+        var NewName  := FDQuery1.FieldByName('name').AsString;
+        var NewEmail := FDQuery1.FieldByName('email').AsString;
+        var NewPhone := FDQuery1.FieldByName('phone').AsString;
+
+        if JsonObj.GetValue('username')  <> nil then NewUsername  := JsonObj.GetValue<string>('username');
+        if JsonObj.GetValue('password')  <> nil then NewPassword  := JsonObj.GetValue<string>('password');
+        if JsonObj.GetValue('name')  <> nil then NewName  := JsonObj.GetValue<string>('name');
+        if JsonObj.GetValue('email') <> nil then NewEmail := JsonObj.GetValue<string>('email');
+        if JsonObj.GetValue('phone') <> nil then NewPhone := JsonObj.GetValue<string>('phone');
+
+        FDQuery1.Close;
+        FDQuery1.SQL.Text :=
+          'UPDATE users SET username = :username, password = :password, name = :name, email = :email, phone = :phone WHERE id = :id';
+        FDQuery1.ParamByName('id').AsInteger := StrToIntDef(UserId, 0);
+        FDQuery1.ParamByName('username').AsWideString  := NewUsername;
+        FDQuery1.ParamByName('password').AsWideString  := NewPassword;
+        FDQuery1.ParamByName('name').AsWideString  := NewName;
+        FDQuery1.ParamByName('email').AsWideString := NewEmail;
+        FDQuery1.ParamByName('phone').AsWideString := NewPhone;
+        FDQuery1.ExecSQL;
+
+        ResultObj.AddPair('success', TJSONBool.Create(True));
+        ResultObj.AddPair('message', '사용자 정보가 일부 수정되었습니다');
+        Response.Content := ResultObj.ToJSON;
+      finally
+        ResultObj.Free;
+      end;
+    finally
+      JsonObj.Free;
+    end;
+  end
   // DELETE /api/users/{id} - 사용자 삭제
   else if (Request.MethodType = mtDelete) and PathInfo.StartsWith('/api/users/') then
   begin
@@ -568,3 +631,4 @@ begin
 end;
 
 end.
+
