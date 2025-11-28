@@ -1,4 +1,4 @@
-﻿unit Server;
+unit Server;
 
 interface
 
@@ -85,20 +85,17 @@ var
   i: Integer;
   RecvStr, SendStr: string;
   parts: TArray<string>;
-  cmd, sRoomID, sUser, sBody: string;
+  sRoomID, sUser, sBody: string;
   cinfo: TClientInfo;
   roomID: Integer;
   conSock: TCustomWinSocket;
 begin
   NowStr := FormatDateTime('t', Now);
-
   RecvStr := Socket.ReceiveText;
 
-  // 간단한 프로토콜 파싱: "JOIN::roomid::roomname::namespace" 또는 "MSG::roomid::username::body"
   if RecvStr.StartsWith('JOIN::') then
   begin
     parts := RecvStr.Split(['::']);
-    // parts[0] = 'JOIN', parts[1]=roomid, parts[2]=roomname, parts[3]=namespace(optional)
     if Socket.Data = nil then
     begin
       cinfo := TClientInfo.Create;
@@ -116,7 +113,6 @@ begin
     else
       cinfo.Namespace := '/chat';
 
-    // 서버 로그에 표시
     RichEdit1.Paragraph.Alignment := taLeftJustify;
     RichEdit1.SelStart := RichEdit1.GetTextLen;
     RichEdit1.SelAttributes.Size := 9;
@@ -127,12 +123,10 @@ begin
   else if RecvStr.StartsWith('MSG::') then
   begin
     parts := RecvStr.Split(['::']);
-    // parts[0]='MSG', parts[1]=roomid, parts[2]=username, parts[3]=body
     if Length(parts) >= 4 then
     begin
       sRoomID := parts[1];
       sUser := parts[2];
-      // body may contain '::' inside content, join the rest
       sBody := String.Join('::', Copy(parts, 3, Length(parts) - 3));
       roomID := StrToIntDef(sRoomID, -1);
 
@@ -140,25 +134,19 @@ begin
       RichEdit1.Paragraph.Alignment := taLeftJustify;
       RichEdit1.SelStart := RichEdit1.GetTextLen;
       RichEdit1.SelAttributes.Size := 9;
-      RichEdit1.SelText := sUser + sLineBreak;
-
+      RichEdit1.SelText := sUser + ': ';
       RichEdit1.SelAttributes.Size := 10;
-      RichEdit1.SelText := sBody + ' : ';
+      RichEdit1.SelText := sBody + ' [' + NowStr + ']' + sLineBreak;
 
-      RichEdit1.SelAttributes.Size := 7;
-      RichEdit1.SelText := NowStr + sLineBreak + sLineBreak;
+      // ★★★ 핵심 수정: 클라이언트가 기대하는 MSG:: 형식으로 전송 ★★★
+      SendStr := Format('MSG::%s::%s::%s', [sRoomID, sUser, sBody]);
 
-      // 전송용 포맷 (클라이언트가 받기 쉬운 포맷)
-      SendStr := Format('%s%s%s%s%s', [sUser, sLineBreak, sBody, ' : ', NowStr]);
-
-
-      // 같은 roomID, 같은 namespace를 가진 연결들만 브로드캐스트
+      // 같은 roomID의 다른 클라이언트들에게 브로드캐스트
       for i := 0 to ServerSocket1.Socket.ActiveConnections - 1 do
       begin
         conSock := ServerSocket1.Socket.Connections[i];
         if conSock = Socket then
-          Continue; // 보낸 본인 제외 (원하면 포함시킬 수 있음)
-//          conSock.SendText(SendStr);
+          Continue; // 보낸 본인 제외
 
         if Assigned(conSock.Data) then
         begin
@@ -166,61 +154,18 @@ begin
             cinfo := TClientInfo(conSock.Data);
             if (cinfo.RoomID = roomID) then
             begin
-              // (네임스페이스도 체크하려면 아래처럼 추가)
-              // if cinfo.Namespace = TClientInfo(Socket.Data).Namespace then ...
               conSock.SendText(SendStr);
             end;
           except
-            // ignore malformed Data
           end;
         end;
       end;
-    end
-    else
-    begin
-      // 포맷 에러 로그
-      RichEdit1.Paragraph.Alignment := taLeftJustify;
-      RichEdit1.SelStart := RichEdit1.GetTextLen;
-      RichEdit1.SelAttributes.Size := 9;
-      RichEdit1.SelText := 'Received malformed MSG: ' + RecvStr + sLineBreak;
     end;
-
     Exit;
-  end
-  else
-  begin
-    // 기존 동작(기본 텍스트 브로드캐스트) — 포맷 없는 텍스트는 모든 연결에 전송 (구형 호환)
-    NowStr := FormatDateTime('t', Now);
-
-    RichEdit1.Paragraph.Alignment := taLeftJustify;
-    RichEdit1.SelStart := RichEdit1.GetTextLen;
-
-    RichEdit1.SelAttributes.Size := 9;
-    RichEdit1.SelText := username + sLineBreak;
-
-    RichEdit1.SelAttributes.Size := 10;
-    RichEdit1.SelText := RecvStr + ': ';
-
-    RichEdit1.SelAttributes.Size := 7;
-    RichEdit1.SelText := NowStr + sLineBreak + sLineBreak;
-
-    SendStr :=
-      username + sLineBreak +
-      RecvStr + ' : ' +
-      NowStr + sLineBreak + sLineBreak;
-
-    for i := 0 to ServerSocket1.Socket.ActiveConnections - 1 do
-    begin
-      if ServerSocket1.Socket.Connections[i] <> Socket then
-      begin
-        ServerSocket1.Socket.Connections[i].SendText(SendStr);
-      end;
-    end;
   end;
 end;
 
 end.
-
 
 
 
