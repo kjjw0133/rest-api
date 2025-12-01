@@ -1,4 +1,4 @@
-﻿unit Unit7;
+unit Unit7;
 
 interface
 
@@ -315,41 +315,58 @@ end;
 
 procedure TForm7.Button4Click(Sender: TObject);
 begin
-  if not IsLoggedIn then
+    FDQueryMembers.Close;
+    FDQueryMembers.SQL.Text := 'select is_logged_in from user where userno = :userno';
+    FDQueryMembers.ParamByName('userno').AsInteger := CurrentUser.UserNo;
+    FDQueryMembers.Open;
+
   begin
-    if Form2.ShowModal = mrOk then
+    if not IsLoggedIn then
     begin
-      IsLoggedIn := True;
+      if Form2.ShowModal = mrOk then
+      begin
+        IsLoggedIn := True;
 
-      Edit1.Enabled   := True;
-      Edit2.Enabled   := True;
-      Button6.Enabled := True;
-      Button2.Enabled := True;
-      Button3.Enabled := True;
-      Button4.Caption := '로그아웃';
-      LoadChat;
+        Edit1.Enabled   := True;
+        Edit2.Enabled   := True;
+        Button6.Enabled := True;
+        Button2.Enabled := True;
+        Button3.Enabled := True;
+        Button4.Caption := '로그아웃';
+        LoadChat;
 
-      Timer1.Interval := 5000;
-      Timer1.Enabled := True;
-    end;
-  end
-  else
-  begin
-    IsLoggedIn := False;
-    CurrentUser.ID := '';
-    CurrentUser.Name := '';
-    CurrentUser.Role := '';
+        Timer1.Interval := 5000;
+        Timer1.Enabled := True;
+      end;
+    end
+    else if FDQueryMembers.FieldByName('is_logged_in').AsBoolean then
+    begin
+      if IsLoggedIn then
+        begin
+          FDQueryMembers.Close;
+          FDQueryMembers.SQL.Text := 'update user set is_logged_in = 0 where userno= :userno';
+          FDQueryMembers.ParamByName('userno').AsInteger := CurrentUser.UserNo;
+          FDQueryMembers.ExecSQL;
 
-    Edit1.Enabled   := False;
-    Edit2.Enabled   := False;
-    Button6.Enabled := False;
-    Button4.Caption := '로그인';
+          IsLoggedIn := False;
+          CurrentUser.ID := '';
+          CurrentUser.Name := '';
+          CurrentUser.Role := '';
 
-    ScrollBox1.DestroyComponents;
-    ShowMessage('로그아웃 되었습니다.');
+          Edit1.Enabled   := False;
+          Edit2.Enabled   := False;
+          Button6.Enabled := False;
+          Button4.Caption := '로그인';
 
-    Timer1.Enabled := False;
+          ScrollBox1.DestroyComponents;
+          ShowMessage('로그아웃 되었습니다.');
+
+          Timer1.Enabled := False;
+        end;
+    end
+
   end;
+
 end;
 
 procedure TForm7.Button6Click(Sender: TObject);
