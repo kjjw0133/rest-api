@@ -193,16 +193,16 @@ object Form3: TForm3
   object FDQueryMembers: TFDQuery
     Connection = FDConnection1
     SQL.Strings = (
-      'select * from chat')
+      '')
     Left = 638
     Top = 408
   end
   object FDConnection1: TFDConnection
     Params.Strings = (
-      'Server=localhost'
-      'Database=chating app'
-      'User_Name=root'
-      'Password=1234'
+      'Server='
+      'Database='
+      'User_Name='
+      'Password='
       'CharacterSet=utf8mb4'
       'DriverID=MySQL')
     Connected = True
@@ -211,3 +211,4 @@ object Form3: TForm3
     Top = 304
   end
 end
+
