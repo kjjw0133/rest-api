@@ -106,11 +106,13 @@ var
   ChatPanel: TPanel;
   RoomNameLabel, MemberCountLabel, DateLabel, TimeLabel, LastMsgLabel: TLabel;
   TopOffset: Integer;
+  RoomID: Integer;
+  FDQuery1: TFDQuery;
 begin
   FDQueryMembers.Close;
   FDQueryMembers.SQL.Text :=
     'SELECT chating.c_no, chat_user.ChatRoomId, '+
-    'chat.chatroomname AS room_name, chat.num AS member_count, ' +
+    'chat.chatroomname AS room_name,  ' +
     'DATE_FORMAT(chating.nowtime, "%Y-%m-%d") AS date, '+
     'DATE_FORMAT(chating.nowtime, "%H:%i") AS time, ' +
     'chating.contents AS last_message FROM chat_user '+
@@ -129,58 +131,74 @@ begin
 
   ScrollBox1.DestroyComponents;
 
-  TopOffset := 10;
-  while not FDQueryMembers.Eof do
-  begin
-    ChatPanel := TPanel.Create(ScrollBox1);
-    ChatPanel.Parent := ScrollBox1;
-    ChatPanel.Align := alTop;
-    ChatPanel.Height := 60;
-    ChatPanel.Caption := '';
-    ChatPanel.Tag := FDQueryMembers.FieldByName('ChatRoomId').AsInteger;
-    ChatPanel.OnClick := ChatPanelClick;
+  FDQuery1 := TFDQuery.Create(nil);
+  try
+    FDQuery1.Connection := FDConnection1;
 
-    RoomNameLabel := TLabel.Create(ChatPanel);
-    RoomNameLabel.Parent := ChatPanel;
-    RoomNameLabel.Left := 10;
-    RoomNameLabel.Top := 8;
-    RoomNameLabel.Font.Style := [fsBold];
-    RoomNameLabel.Caption := FDQueryMembers.FieldByName('room_name').AsString;
-    RoomNameLabel.Tag := ChatPanel.Tag;
-    RoomNameLabel.OnClick := ChatPanelClick;
+    TopOffset := 10;
+    while not FDQueryMembers.Eof do
+    begin
+      RoomID := FDQueryMembers.FieldByName('ChatRoomId').AsInteger;
 
-    MemberCountLabel := TLabel.Create(ChatPanel);
-    MemberCountLabel.Parent := ChatPanel;
-    MemberCountLabel.Left := 200;
-    MemberCountLabel.Top := 8;
-    MemberCountLabel.Caption := Format('인원: %d명',
-      [FDQueryMembers.FieldByName('member_count').AsInteger]);
-    MemberCountLabel.Tag := ChatPanel.Tag;
-    MemberCountLabel.OnClick := ChatPanelClick;
+      ChatPanel := TPanel.Create(ScrollBox1);
+      ChatPanel.Parent := ScrollBox1;
+      ChatPanel.Align := alTop;
+      ChatPanel.Height := 60;
+      ChatPanel.Caption := '';
+      ChatPanel.Tag := RoomID;
+      ChatPanel.OnClick := ChatPanelClick;
 
-    DateLabel := TLabel.Create(ChatPanel);
-    DateLabel.Parent := ChatPanel;
-    DateLabel.Left := 10;
-    DateLabel.Top := 30;
-    DateLabel.Caption := FDQueryMembers.FieldByName('date').AsString + ' ' +
-                         FDQueryMembers.FieldByName('time').AsString;
-    DateLabel.Tag := ChatPanel.Tag;
-    DateLabel.OnClick := ChatPanelClick;
+      RoomNameLabel := TLabel.Create(ChatPanel);
+      RoomNameLabel.Parent := ChatPanel;
+      RoomNameLabel.Left := 10;
+      RoomNameLabel.Top := 8;
+      RoomNameLabel.Font.Style := [fsBold];
+      RoomNameLabel.Caption := FDQueryMembers.FieldByName('room_name').AsString;
+      RoomNameLabel.Tag := ChatPanel.Tag;
+      RoomNameLabel.OnClick := ChatPanelClick;
 
-    LastMsgLabel := TLabel.Create(ChatPanel);
-    LastMsgLabel.Parent := ChatPanel;
-    LastMsgLabel.Left := 200;
-    LastMsgLabel.Top := 30;
-    LastMsgLabel.Caption := FDQueryMembers.FieldByName('last_message').AsString;
-    LastMsgLabel.Tag := ChatPanel.Tag;
-    LastMsgLabel.OnClick := ChatPanelClick;
+      DateLabel := TLabel.Create(ChatPanel);
+      DateLabel.Parent := ChatPanel;
+      DateLabel.Left := 10;
+      DateLabel.Top := 30;
+      DateLabel.Caption := FDQueryMembers.FieldByName('date').AsString + ' ' +
+                           FDQueryMembers.FieldByName('time').AsString;
+      DateLabel.Tag := ChatPanel.Tag;
+      DateLabel.OnClick := ChatPanelClick;
 
-    TopOffset := TopOffset + ChatPanel.Height + 5;
-    FDQueryMembers.Next;
+      LastMsgLabel := TLabel.Create(ChatPanel);
+      LastMsgLabel.Parent := ChatPanel;
+      LastMsgLabel.Left := 200;
+      LastMsgLabel.Top := 30;
+      LastMsgLabel.Caption := FDQueryMembers.FieldByName('last_message').AsString;
+      LastMsgLabel.Tag := ChatPanel.Tag;
+      LastMsgLabel.OnClick := ChatPanelClick;
+
+      // ✅ 실시간 COUNT 사용
+      FDQuery1.Close;
+      FDQuery1.SQL.Text :=
+        'SELECT COUNT(userno) AS num FROM chat_user WHERE ChatRoomId = :Roomid';
+      FDQuery1.ParamByName('RoomId').AsInteger := RoomID;
+      FDQuery1.Open;
+
+      MemberCountLabel := TLabel.Create(ChatPanel);
+      MemberCountLabel.Parent := ChatPanel;
+      MemberCountLabel.Left := 200;
+      MemberCountLabel.Top := 8;
+      MemberCountLabel.Caption := Format('인원: %d명', [FDQuery1.FieldByName('num').AsInteger]);
+      MemberCountLabel.Tag := ChatPanel.Tag;
+      MemberCountLabel.OnClick := ChatPanelClick;
+
+      TopOffset := TopOffset + ChatPanel.Height + 5;
+      FDQueryMembers.Next;
+    end;
+
+    if (FDQueryMembers.RecordCount = 0) and (not Silent) then
+      ShowMessage('참여 중인 채팅방이 없습니다.');
+
+  finally
+    FDQuery1.Free;
   end;
-
-  if (FDQueryMembers.RecordCount = 0) and (not Silent) then
-    ShowMessage('참여 중인 채팅방이 없습니다.');
 
   FDQueryMembers.Close;
 end;
@@ -209,7 +227,7 @@ begin
 
   FDQueryMembers.Close;
   FDQueryMembers.SQL.Text :=
-    ' SELECT cu.ChatRoomId, c.num, u.userno, c.chatroomname, u.name '+
+    ' SELECT cu.ChatRoomId, u.userno, c.chatroomname, u.name '+
     ' FROM chat_user cu '+
     ' JOIN chat c ON c.ChatRoomId = cu.ChatRoomId '+
     ' JOIN user u ON u.userno = cu.userno '+
@@ -227,10 +245,18 @@ begin
     end;
 
     qryChatRoomId := FDQueryMembers.FieldByName('ChatRoomId').AsInteger;
-    qryNum := FDQueryMembers.FieldByName('num').AsInteger;
     qryUserNo := FDQueryMembers.FieldByName('userno').AsInteger;
     qryChatRoomName := FDQueryMembers.FieldByName('chatroomname').AsString;
     qryName := FDQueryMembers.FieldByName('name').AsString;
+
+    // ✅ 실시간 COUNT
+    FDQueryMembers.Close;
+    FDQueryMembers.SQL.Text :=
+      'SELECT COUNT(userno) AS num FROM chat_user WHERE ChatRoomId = :Roomid';
+    FDQueryMembers.ParamByName('RoomId').AsInteger := RoomID;
+    FDQueryMembers.Open;
+
+    qryNum := FDQueryMembers.FieldByName('num').AsInteger;
 
     if not Form1.ClientSocket1.Active then
     begin
@@ -248,17 +274,23 @@ begin
       end;
     end;
 
-    Form1.JoinChatRoom(qryChatRoomId, qryNum, qryChatRoomName);
-    Form1.InitializeChat(qryChatRoomId, qryNum, qryUserNo, qryName, qryChatRoomName);
-    ShowMessage('채팅방 ' + IntToStr(qryChatRoomId) + ' 입장 (방명: ' + qryChatRoomName + ')');
+//    FDQueryMembers.SQL.Text := 'select is_logged_in from user where userno = :userno ';
+//    FDQueryMembers.ParamByName('userno').AsInteger := userno;
+//    FDQueryMembers.Open;
+//
+//    if not FDQueryMembers.FieldByName('is_logged_in').AsBoolean then
+//    begin
+      Form1.JoinChatRoom(qryChatRoomId, qryNum, qryChatRoomName);
+      Form1.InitializeChat(qryChatRoomId, qryNum, qryUserNo, qryName, qryChatRoomName);
+      ShowMessage('채팅방 ' + IntToStr(qryChatRoomId) + ' 입장 (방명: ' + qryChatRoomName + ')');
 
-    Form1.Position := poDesigned;
-    Form1.Show;
-    Self.Hide;
-
-  finally
-    FDQueryMembers.Close;
-  end;
+      Form1.Position := poDesigned;
+      Form1.Show;
+      Self.Hide;
+//    end;
+    finally
+      FDQueryMembers.Close;
+    end;
 end;
 
 procedure TForm7.Button2Click(Sender: TObject);
@@ -269,6 +301,19 @@ end;
 
 procedure TForm7.Button3Click(Sender: TObject);
 begin
+  FDQueryMembers.Close;
+  FDQueryMembers.SQL.Text := 'select is_logged_in from user where userno = :userno ';
+  FDQueryMembers.ParamByName('userno').AsInteger := userno;
+  FDQueryMembers.Open;
+
+  if not FDQueryMembers.FieldByName('is_logged_in').AsBoolean then
+  begin
+    if not IsLoggedIn then
+    begin
+      ShowMessage('로그인이 필요합니다.');
+      Exit;
+    end;
+  end;
   Form8.Show;
 end;
 
@@ -355,7 +400,8 @@ begin
 
           Edit1.Enabled   := False;
           Edit2.Enabled   := False;
-          Button6.Enabled := False;
+          Button3.Enabled := True;
+          Button6.Enabled := True;
           Button4.Caption := '로그인';
 
           ScrollBox1.DestroyComponents;
@@ -374,10 +420,19 @@ var
   ChatRoomID, num, userno: Integer;
   chatpw, chatroomname: String;
 begin
-  if not IsLoggedIn then
+
+  FDQueryMembers.Close;
+  FDQueryMembers.SQL.Text := 'select is_logged_in from user where userno = :userno ';
+  FDQueryMembers.ParamByName('userno').AsInteger := userno;
+  FDQueryMembers.Open;
+
+  if not FDQueryMembers.FieldByName('is_logged_in').AsBoolean then
   begin
-    ShowMessage('로그인이 필요합니다.');
-    Exit;
+    if not IsLoggedIn then
+    begin
+      ShowMessage('로그인이 필요합니다.');
+      Exit;
+    end;
   end;
 
   userno := CurrentUser.UserNo;
@@ -392,9 +447,11 @@ begin
 
   FDQueryMembers.Close;
   FDQueryMembers.SQL.Text :=
-    'SELECT chatpw, num, ChatRoomId, chatroomname ' +
-    'FROM chat ' +
-    'WHERE chatpw = :chatpw AND ChatRoomId = :ChatRoomID';
+    'SELECT c.chatpw, COUNT(cu.userno) AS num, c.ChatRoomId, c.chatroomname ' +
+    'FROM chat c ' +
+    'LEFT JOIN chat_user cu ON c.ChatRoomId = cu.ChatRoomId ' +
+    'WHERE c.chatpw = :chatpw AND c.ChatRoomId = :ChatRoomID ' +
+    'GROUP BY c.ChatRoomId';
   FDQueryMembers.ParamByName('chatpw').AsString := chatpw;
   FDQueryMembers.ParamByName('ChatRoomID').AsInteger := ChatRoomID;
   FDQueryMembers.Open;
