@@ -70,24 +70,6 @@ object Form8: TForm8
     TabOrder = 0
     TextHint = #48169' '#51228#47785#51012' '#51077#47141#54616#49464#50836
   end
-  object RadioButton1: TRadioButton
-    Left = 108
-    Top = 200
-    Width = 113
-    Height = 17
-    Caption = #48708#44277#44060' '#52292#54021
-    TabOrder = 1
-  end
-  object RadioButton2: TRadioButton
-    Left = 248
-    Top = 200
-    Width = 113
-    Height = 17
-    Caption = #44277#44060' '#52292#54021
-    Checked = True
-    TabOrder = 2
-    TabStop = True
-  end
   object Button1: TButton
     Left = 75
     Top = 385
@@ -100,7 +82,7 @@ object Form8: TForm8
     Font.Name = 'Segoe UI'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 3
+    TabOrder = 1
     OnClick = Button1Click
   end
   object Button2: TButton
@@ -109,7 +91,7 @@ object Form8: TForm8
     Width = 75
     Height = 25
     Caption = #51068#48152' '#52292#54021
-    TabOrder = 4
+    TabOrder = 2
     OnClick = Button2Click
   end
   object Button3: TButton
@@ -118,7 +100,7 @@ object Form8: TForm8
     Width = 75
     Height = 25
     Caption = #50724#54536' '#52292#54021
-    TabOrder = 5
+    TabOrder = 3
     OnClick = Button3Click
   end
   object FDQueryMembers: TFDQuery

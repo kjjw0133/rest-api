@@ -50,6 +50,12 @@ object Form13: TForm13
       Height = 24
       Margins.Left = 40
       BorderStyle = bsNone
+      Font.Charset = DEFAULT_CHARSET
+      Font.Color = clWindowText
+      Font.Height = -16
+      Font.Name = 'Segoe UI'
+      Font.Style = []
+      ParentFont = False
       TabOrder = 0
       OnChange = edtSearchChange
       OnEnter = edtSearchEnter
@@ -57,8 +63,8 @@ object Form13: TForm13
     end
   end
   object lbFriends: TListBox
-    Left = 12
-    Top = 96
+    Left = 16
+    Top = 90
     Width = 336
     Height = 376
     ItemHeight = 13
@@ -104,5 +110,26 @@ object Form13: TForm13
       ParentFont = False
       TabOrder = 1
     end
+  end
+  object FDQuery1: TFDQuery
+    Connection = FDConnection1
+    Left = 176
+    Top = 272
+  end
+  object FDConnection1: TFDConnection
+    Params.Strings = (
+      'Password=1234'
+      'User_Name=root'
+      'Database=chating app'
+      'DriverID=MySQL')
+    Connected = True
+    LoginPrompt = False
+    Left = 264
+    Top = 280
+  end
+  object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
+    VendorLib = 'C:\MYPROGRAM\delphi\mysql\mysql-5.7.33-win32\lib\libmysql.dll'
+    Left = 208
+    Top = 352
   end
 end

@@ -5,7 +5,12 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes,
   Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  Vcl.ExtCtrls, Vcl.ComCtrls, math;
+  Vcl.ExtCtrls, Vcl.ComCtrls, math, FireDAC.Stan.Intf, FireDAC.Stan.Option,
+  FireDAC.Stan.Param, FireDAC.Stan.Error, FireDAC.DatS, FireDAC.Phys.Intf,
+  FireDAC.DApt.Intf, FireDAC.Stan.Async, FireDAC.DApt, FireDAC.UI.Intf,
+  FireDAC.Stan.Def, FireDAC.Stan.Pool, FireDAC.Phys, FireDAC.Phys.MySQL,
+  FireDAC.Phys.MySQLDef, FireDAC.VCLUI.Wait, Data.DB, FireDAC.Comp.Client,
+  FireDAC.Comp.DataSet;
 
 type
   TForm13 = class(TForm)
@@ -17,6 +22,9 @@ type
     PanelBottom: TPanel;
     btnOK: TButton;
     btnCancel: TButton;
+    FDQuery1: TFDQuery;
+    FDConnection1: TFDConnection;
+    FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink;
 
     procedure FormCreate(Sender: TObject);
     procedure pbSearchBGPaint(Sender: TObject);
@@ -72,6 +80,11 @@ end;
 { ---------------- Data load ---------------- }
 procedure TForm13.PopulateAllNames;
 begin
+  // test있는 곳에 데이터 베이스에서 가져온 친구 추가된 유저를 가져옴
+//  FDQuery1.Close;
+//  FDQuery1.SQL.Text := '';
+//  FDQuery1.Open;
+
   FAllNames.Clear;
   FAllNames.Add('test1');
   FAllNames.Add('test2');
