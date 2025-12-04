@@ -44,15 +44,37 @@ uses
 Unit7, unit2,unit1,unit13;
 
 procedure TForm8.Button2Click(Sender: TObject);
+var 
+  roomname : String;
 begin
   chatroomname := Trim(edit1.Text);
   ChatType := 1;
 
-    Form13.ShowModal;
-    Self.Hide;
-
-    Edit1.Clear;
+  if chatroomname = '' then
+  begin
+    ShowMessage('방 이름을 입력해주세요.');
     Exit;
+  end;
+
+  FDQueryMembers.Close;
+  FDQueryMembers.SQL.Text := ' select chatroomname from chat where chatroomname = :chatroomname ';
+  FDQueryMembers.ParamByName('chatroomname').AsString := chatroomname;
+  FDQueryMembers.Open;
+
+  FDQueryMembers.FieldByName('chatroomname').AsString := roomname;
+
+  if chatroomname = roomname then
+  begin
+    ShowMessage('이미 있는 이름입니다. 다시 이름으로 변경해주세요.');
+    Exit;
+  end;
+  
+
+  Form13.ShowModal;
+  Self.Hide;
+
+  Edit1.Clear;
+  Exit;
 end;
 
 procedure TForm8.Button3Click(Sender: TObject);
@@ -61,12 +83,18 @@ begin
 
   chatroomname := Trim(edit1.Text);
 
-    Form13.ShowModal;
-    Self.Hide;
-
-    Edit1.Clear;
-    Form8.Close;
+  if chatroomname = '' then
+  begin
+    ShowMessage('방 이름을 입력해주세요.');
     Exit;
+  end;
+
+  Form13.ShowModal;
+  Self.Hide;
+
+  Edit1.Clear;
+  Form8.Close;
+  Exit;
 end;
 
 procedure TForm8.FormCreate(Sender: TObject);

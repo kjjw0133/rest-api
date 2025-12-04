@@ -25,6 +25,7 @@ type
     FDQuery1: TFDQuery;
     FDConnection1: TFDConnection;
     FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink;
+    userCountLabel: TLabel;
 
     procedure FormCreate(Sender: TObject);
     procedure pbSearchBGPaint(Sender: TObject);
@@ -88,7 +89,7 @@ begin
 
   FAllNames.Clear;
   FAllNames.Add('test1');
-  FAllNames.Add('test2');
+  FAllNames.Add('한국어 테스트');
   FAllNames.Add('test3');
   FAllNames.Add('test4');
   FAllNames.Add('test5');
@@ -155,7 +156,7 @@ begin
     PenCol := $00C8C8C8;
 
   C.Brush.Style := bsSolid;
-  C.Brush.Color := clWhite;  // 배경을 흰색으로
+  C.Brush.Color := clWhite;
   C.Pen.Style := psSolid;
   C.Pen.Color := PenCol;
   C.Pen.Width := 1;

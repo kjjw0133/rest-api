@@ -2,8 +2,8 @@ object Form13: TForm13
   Left = 0
   Top = 0
   Caption = #45824#54868#49345#45824' '#49440#53469
-  ClientHeight = 540
-  ClientWidth = 360
+  ClientHeight = 560
+  ClientWidth = 369
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -24,6 +24,13 @@ object Form13: TForm13
     Font.Name = 'Segoe UI'
     Font.Style = [fsBold]
     ParentFont = False
+  end
+  object userCountLabel: TLabel
+    Left = 16
+    Top = 93
+    Width = 46
+    Height = 13
+    Caption = #52828#44396' ??'#47749
   end
   object pnlSearch: TPanel
     Left = 16
@@ -64,7 +71,7 @@ object Form13: TForm13
   end
   object lbFriends: TListBox
     Left = 16
-    Top = 90
+    Top = 120
     Width = 336
     Height = 376
     ItemHeight = 13
@@ -75,12 +82,14 @@ object Form13: TForm13
   end
   object PanelBottom: TPanel
     Left = 0
-    Top = 486
-    Width = 360
+    Top = 506
+    Width = 369
     Height = 54
     Align = alBottom
     BevelOuter = bvNone
     TabOrder = 2
+    ExplicitTop = 486
+    ExplicitWidth = 360
     object btnOK: TButton
       Left = 164
       Top = 0
@@ -113,8 +122,8 @@ object Form13: TForm13
   end
   object FDQuery1: TFDQuery
     Connection = FDConnection1
-    Left = 176
-    Top = 272
+    Left = 280
+    Top = 248
   end
   object FDConnection1: TFDConnection
     Params.Strings = (
@@ -125,11 +134,11 @@ object Form13: TForm13
     Connected = True
     LoginPrompt = False
     Left = 264
-    Top = 280
+    Top = 296
   end
   object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
     VendorLib = 'C:\MYPROGRAM\delphi\mysql\mysql-5.7.33-win32\lib\libmysql.dll'
     Left = 208
-    Top = 352
+    Top = 368
   end
 end
