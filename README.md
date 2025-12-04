@@ -57,7 +57,8 @@
      + 발생 원인 : 메인창에서 Panel에 새로운 정보가 들어오면 반영이 되도록 5초 간격으로 새로고침이 되는데, 새로고침이 될 때 로그아웃을 누르면 로그인 할때 보았던 Panel이 나오고 사용도 할 수 있는 상황이 발생한다.
      + 해결 방법
         1. 메인에서 Panel을 클릭할 떄 로그인 정보를 확인하지 않고 바로 입장하는데 이런 오류 상활을 위해서 로그인 확인 로직을 구현(구현)
-        2. 로그아웃 할 때 CurrentUser.UserNo 값을 초기화하여 userno를 불러오지 못하도록한다.
+        2. 로그아웃 버튼을 누르면 Timer1.Enabled := False;로 만들어서 새로고침이 발생하지 않도록 한다. 
+        3. 로그아웃 할 때 CurrentUser.UserNo 값을 초기화하여 userno를 불러오지 못하도록한다.
 <img width="601" height="429" alt="image" src="https://github.com/user-attachments/assets/8644a3cb-86ec-4d31-a47c-b5b5ec8aa66a" />
 <img width="737" height="38" alt="image" src="https://github.com/user-attachments/assets/3a9558f5-f2f9-4418-801a-ddca7df79a4c" />
 
