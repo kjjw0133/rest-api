@@ -45,7 +45,7 @@ object Form8: TForm8
   object Label2: TLabel
     Left = 0
     Top = 60
-    Width = 449
+    Width = 127
     Height = 32
     Alignment = taCenter
     Caption = #52292#54021#48169' '#49373#49457

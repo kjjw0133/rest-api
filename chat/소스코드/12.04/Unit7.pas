@@ -217,6 +217,22 @@ var
   qryChatRoomId: Integer;
   qryChatRoomName, qryName: string;
 begin
+  FDQueryMembers.Close;
+  FDQueryMembers.SQL.Text := 'select is_logged_in from user where userno = :userno ';
+  FDQueryMembers.ParamByName('userno').AsInteger := userno;
+  FDQueryMembers.Open;
+
+  if not FDQueryMembers.FieldByName('is_logged_in').AsBoolean then
+  begin
+    if not IsLoggedIn then
+    begin
+      // 새로고침 타이밍에 로그아웃을 하여서 발생한 오류 상황
+      ShowMessage('로그인이 필요합니다.');
+      close;
+      Exit;
+    end;
+  end;
+
   if Sender is TPanel then
     RoomID := (Sender as TPanel).Tag
   else if Sender is TLabel then
@@ -387,6 +403,8 @@ begin
     begin
       if IsLoggedIn then
         begin
+          Timer1.Enabled := False;
+
           FDQueryMembers.Close;
           FDQueryMembers.SQL.Text := 'update user set is_logged_in = 0 where userno= :userno';
           FDQueryMembers.ParamByName('userno').AsInteger := CurrentUser.UserNo;

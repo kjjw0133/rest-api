@@ -27,7 +27,7 @@ type
     procedure Button2Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
   private
-    { Private declarations }
+    function roomnameequal: String;
   public
     ChatType : Integer;
     chatroomname : String;
@@ -43,6 +43,24 @@ implementation
 uses
 Unit7, unit2,unit1,unit13;
 
+function TForm8.roomnameequal: String;
+var
+  roomname : String;
+begin
+  FDQueryMembers.Close;
+  FDQueryMembers.SQL.Text := ' select chatroomname from chat where chatroomname = :chatroomname ';
+  FDQueryMembers.ParamByName('chatroomname').AsString := chatroomname;
+  FDQueryMembers.Open;
+
+  FDQueryMembers.FieldByName('chatroomname').AsString := roomname;
+
+  if chatroomname = roomname then
+  begin
+    ShowMessage('이미 있는 이름입니다. 다시 이름으로 변경해주세요.');
+    Exit;
+  end;
+end;
+
 procedure TForm8.Button2Click(Sender: TObject);
 var 
   roomname : String;
@@ -56,19 +74,7 @@ begin
     Exit;
   end;
 
-  FDQueryMembers.Close;
-  FDQueryMembers.SQL.Text := ' select chatroomname from chat where chatroomname = :chatroomname ';
-  FDQueryMembers.ParamByName('chatroomname').AsString := chatroomname;
-  FDQueryMembers.Open;
-
-  FDQueryMembers.FieldByName('chatroomname').AsString := roomname;
-
-  if chatroomname = roomname then
-  begin
-    ShowMessage('이미 있는 이름입니다. 다시 이름으로 변경해주세요.');
-    Exit;
-  end;
-  
+  roomnameequal;
 
   Form13.ShowModal;
   Self.Hide;
@@ -88,6 +94,8 @@ begin
     ShowMessage('방 이름을 입력해주세요.');
     Exit;
   end;
+
+  roomnameequal;
 
   Form13.ShowModal;
   Self.Hide;

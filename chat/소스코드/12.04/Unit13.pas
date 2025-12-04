@@ -48,6 +48,8 @@ type
 
 var
   Form13: TForm13;
+  status: Boolean = False;
+
 
 implementation
 
@@ -81,11 +83,16 @@ end;
 
 { ---------------- Data load ---------------- }
 procedure TForm13.PopulateAllNames;
+var
+  username : String;
 begin
-  // test있는 곳에 데이터 베이스에서 가져온 친구 추가된 유저를 가져옴
+//   test있는 곳에 데이터 베이스에서 가져온 친구 추가된 유저를 가져옴
 //  FDQuery1.Close;
-//  FDQuery1.SQL.Text := '';
+//  FDQuery1.SQL.Text := 'select * from friend where status = :status ';
 //  FDQuery1.Open;
+//
+//  FDQuery1.FieldByName('requester_id').AsString := username;
+//  FDQuery1.FieldByName('receiver_id').AsString := username;
 
   FAllNames.Clear;
   FAllNames.Add('test1');
