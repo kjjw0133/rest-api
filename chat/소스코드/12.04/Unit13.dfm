@@ -129,8 +129,8 @@ object Form13: TForm13
       'Password=1234'
       'User_Name=root'
       'Database=chating app'
+      'CharacterSet=utf8mb4'
       'DriverID=MySQL')
-    Connected = True
     LoginPrompt = False
     Left = 264
     Top = 296

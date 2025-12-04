@@ -417,6 +417,7 @@ begin
 
           Edit1.Enabled   := False;
           Edit1.Clear;
+          Edit2.Clear;
           Edit2.Enabled   := False;
           Button3.Enabled := True;
           Button6.Enabled := True;

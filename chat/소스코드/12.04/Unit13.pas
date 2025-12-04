@@ -16,7 +16,8 @@ type
   TFriendInfo = class
     UserId: String;
     UserNo: Integer;
-    UserName: String;
+    UserName: WideString;
+    IsSelected: Boolean;  // 다중 선택을 위한 필드 추가
   end;
 
   TForm13 = class(TForm)
@@ -53,6 +54,7 @@ type
     procedure FilterList(const Keyword: string);
     procedure DrawMagnifier(const C: TCanvas; const R: TRect);
     function GetSelectedFriend: TFriendInfo;
+    function GetSelectedFriends: TList<TFriendInfo>;  // 다중 선택용
   public
   end;
 
@@ -76,6 +78,13 @@ var
 begin
   FAllFriends := TObjectList<TFriendInfo>.Create(True);
   FFilteredFriends := TObjectList<TFriendInfo>.Create(False);
+
+  // MySQL 연결 시 UTF-8 문자셋 설정
+  if not FDConnection1.Connected then
+  begin
+    FDConnection1.Params.Values['CharacterSet'] := 'utf8mb4';
+    FDConnection1.Connected := True;
+  end;
 
   PopulateAllFriends;
 
@@ -104,11 +113,19 @@ procedure TForm13.PopulateAllFriends;
 var
   FriendInfo: TFriendInfo;
   CurrentUserId: String;
+  NameStr: String;
 begin
   FAllFriends.Clear;
 
   // CurrentUser.UserNo로 user.id를 조회해야 함
   try
+    // UTF-8 설정 확인
+    if not FDConnection1.Connected then
+    begin
+      FDConnection1.Params.Values['CharacterSet'] := 'utf8mb4';
+      FDConnection1.Connected := True;
+    end;
+
     FDQuery1.Close;
     FDQuery1.SQL.Text := 'SELECT id FROM user WHERE userno = :userno';
     FDQuery1.ParamByName('userno').AsInteger := CurrentUser.UserNo;
@@ -153,7 +170,14 @@ begin
       FriendInfo := TFriendInfo.Create;
       FriendInfo.UserNo := FDQuery1.FieldByName('friend_userno').AsInteger;
       FriendInfo.UserId := FDQuery1.FieldByName('friend_id').AsString;
-      FriendInfo.UserName := FDQuery1.FieldByName('friend_name').AsString;
+
+      // 여러 방법으로 시도
+      NameStr := FDQuery1.FieldByName('friend_name').AsString;
+
+      // AsString으로 직접 가져오기 (가장 안전)
+      FriendInfo.UserName := NameStr;
+
+      FriendInfo.IsSelected := False;
       FAllFriends.Add(FriendInfo);
 
       FDQuery1.Next;
@@ -262,16 +286,21 @@ procedure TForm13.lbFriendsDrawItem(Control: TWinControl; Index: Integer;
   Rect: TRect; State: TOwnerDrawState);
 var
   C: TCanvas;
-  sName: string;
+  sName: String;  // WideString -> String 변경
   isSel: Boolean;
   YCenter: Integer;
-  avatarRect, radioRect, R: TRect;
+  avatarRect, checkboxRect, R: TRect;
   colBg: TColor;
   TextLeft: Integer;
+  Friend: TFriendInfo;
 begin
+  if (Index < 0) or (Index >= FFilteredFriends.Count) then
+    Exit;
+
   C := lbFriends.Canvas;
-  sName := lbFriends.Items[Index];
-  isSel := (lbFriends.ItemIndex = Index);
+  Friend := FFilteredFriends[Index];
+  sName := Friend.UserName;
+  isSel := Friend.IsSelected;
 
   if odSelected in State then
     C.Brush.Color := $00F0F8FF
@@ -286,23 +315,31 @@ begin
   avatarRect.Top    := YCenter - AVATAR_SIZE div 2;
   avatarRect.Bottom := avatarRect.Top + AVATAR_SIZE;
 
-  colBg := RGB(
-    150 + (Ord(sName[1]) * 3) mod 100,
-    120 + (Ord(sName[1]) * 5) mod 100,
-    160 + (Ord(sName[1]) * 7) mod 80
-  );
+  if Length(sName) > 0 then
+  begin
+    colBg := RGB(
+      150 + (Ord(sName[1]) * 3) mod 100,
+      120 + (Ord(sName[1]) * 5) mod 100,
+      160 + (Ord(sName[1]) * 7) mod 80
+    );
+  end
+  else
+    colBg := RGB(150, 120, 160);
 
   C.Brush.Color := colBg;
   C.Pen.Color := colBg;
   C.Ellipse(avatarRect.Left, avatarRect.Top, avatarRect.Right, avatarRect.Bottom);
 
-  C.Font.Name := 'Segoe UI';
+  C.Font.Name := 'Malgun Gothic';
   C.Font.Size := 10;
   C.Font.Style := [fsBold];
   C.Font.Color := clWhite;
 
-  DrawText(C.Handle, PChar(Copy(sName,1,1)), 1,
-    avatarRect, DT_CENTER or DT_VCENTER or DT_SINGLELINE);
+  if Length(sName) > 0 then
+    TextOut(C.Handle,
+            avatarRect.Left + (AVATAR_SIZE - C.TextWidth(Copy(sName,1,1))) div 2,
+            avatarRect.Top + (AVATAR_SIZE - C.TextHeight(Copy(sName,1,1))) div 2,
+            PChar(Copy(sName,1,1)), 1);
 
   TextLeft := avatarRect.Right + ITEM_PADDING;
 
@@ -310,35 +347,62 @@ begin
   R.Left := TextLeft;
   R.Right := Rect.Right - 40;
 
+  C.Font.Name := 'Malgun Gothic';
   C.Font.Size := 11;
   C.Font.Style := [];
   C.Font.Color := clWindowText;
 
-  DrawText(C.Handle, PChar(sName), Length(sName), R,
-    DT_LEFT or DT_VCENTER or DT_SINGLELINE);
-
-  radioRect.Left := Rect.Right - ITEM_PADDING - 18;
-  radioRect.Right := radioRect.Left + 18;
-  radioRect.Top := YCenter - 9;
-  radioRect.Bottom := radioRect.Top + 18;
-
+  // DrawTextW 대신 TextOut 사용
   C.Brush.Style := bsClear;
-  C.Pen.Color := $00C8C8C8;
-  C.Ellipse(radioRect.Left, radioRect.Top, radioRect.Right, radioRect.Bottom);
+  TextOut(C.Handle,
+          R.Left,
+          R.Top + (R.Bottom - R.Top - C.TextHeight(sName)) div 2,
+          PChar(sName), Length(sName));
+
+  // 체크박스
+  checkboxRect.Left := Rect.Right - ITEM_PADDING - 20;
+  checkboxRect.Right := checkboxRect.Left + 20;
+  checkboxRect.Top := YCenter - 10;
+  checkboxRect.Bottom := checkboxRect.Top + 20;
 
   if isSel then
   begin
     C.Brush.Style := bsSolid;
     C.Brush.Color := RGB(100,160,255);
-    C.Pen.Color := C.Brush.Color;
-    C.Ellipse(radioRect.Left+5, radioRect.Top+5,
-              radioRect.Right-5, radioRect.Bottom-5);
+    C.Pen.Color := RGB(100,160,255);
+  end
+  else
+  begin
+    C.Brush.Style := bsClear;
+    C.Pen.Color := $00C8C8C8;
+  end;
+
+  C.RoundRect(checkboxRect.Left, checkboxRect.Top,
+              checkboxRect.Right, checkboxRect.Bottom, 4, 4);
+
+  if isSel then
+  begin
+    C.Pen.Color := clWhite;
+    C.Pen.Width := 2;
+    C.MoveTo(checkboxRect.Left + 4, checkboxRect.Top + 10);
+    C.LineTo(checkboxRect.Left + 8, checkboxRect.Top + 14);
+    C.LineTo(checkboxRect.Left + 16, checkboxRect.Top + 6);
+    C.Pen.Width := 1;
   end;
 end;
 
 procedure TForm13.lbFriendsClick(Sender: TObject);
+var
+  Index: Integer;
+  Friend: TFriendInfo;
 begin
-  lbFriends.Invalidate;
+  Index := lbFriends.ItemIndex;
+  if (Index >= 0) and (Index < FFilteredFriends.Count) then
+  begin
+    Friend := FFilteredFriends[Index];
+    Friend.IsSelected := not Friend.IsSelected;  // 선택 상태 토글
+    lbFriends.Invalidate;
+  end;
 end;
 
 function TForm13.GetSelectedFriend: TFriendInfo;
@@ -350,6 +414,20 @@ begin
 
   if (SelectedIndex >= 0) and (SelectedIndex < FFilteredFriends.Count) then
     Result := FFilteredFriends[SelectedIndex];
+end;
+
+// 다중 선택된 친구들을 반환하는 새 함수
+function TForm13.GetSelectedFriends: TList<TFriendInfo>;
+var
+  i: Integer;
+begin
+  Result := TList<TFriendInfo>.Create;
+
+  for i := 0 to FAllFriends.Count - 1 do
+  begin
+    if FAllFriends[i].IsSelected then
+      Result.Add(FAllFriends[i]);
+  end;
 end;
 
 { ---------------- 확인 버튼: 채팅방 생성 및 멤버 초대 ---------------- }
@@ -367,134 +445,151 @@ const
     'q','r','s','t','u','v','w','x','y','z'
   );
 var
-  chatpw, RandChar, chatroomname: String;
+  chatpw, RandChar, chatroomname, InvitedNames: WideString;
   I, R, ChatRoomID, userno, ChatType: Integer;
-  SelectedFriend: TFriendInfo;
+  SelectedFriends: TList<TFriendInfo>;
+  Friend: TFriendInfo;
 begin
-  // 친구 선택 확인
-  if lbFriends.ItemIndex < 0 then
-  begin
-    ShowMessage('초대할 친구를 선택해주세요.');
-    Exit;
-  end;
-
-  ChatType := Form8.ChatType;
-  chatroomname := Form8.chatroomname;
-  userno := CurrentUser.UserNo;
-  SelectedFriend := GetSelectedFriend;
-
-  if SelectedFriend = nil then
-  begin
-    ShowMessage('선택한 친구 정보를 가져올 수 없습니다.');
-    Exit;
-  end;
-
-  // 랜덤 비밀번호 생성
-  Randomize;
-  chatpw := '';
-
-  if ChatType = 1 then
-  begin
-    for I := 1 to 8 do
-    begin
-      if Random(2) = 0 then
-      begin
-        R := Random(26);
-        RandChar := LETTERS[R];
-      end
-      else
-      begin
-        R := Random(10);
-        RandChar := IntToStr(R);
-      end;
-      chatpw := chatpw + RandChar;
-    end;
-  end;
-
+  SelectedFriends := GetSelectedFriends;
   try
-    FDConnection1.StartTransaction;
+    // 친구 선택 확인
+    if SelectedFriends.Count = 0 then
+    begin
+      ShowMessage('최소 1명 이상의 친구를 선택해주세요.');
+      Exit;
+    end;
+
+    ChatType := Form8.ChatType;
+    chatroomname := Form8.chatroomname;
+    userno := CurrentUser.UserNo;
+
+    // 랜덤 비밀번호 생성
+    Randomize;
+    chatpw := '';
+
+    if ChatType = 1 then
+    begin
+      for I := 1 to 8 do
+      begin
+        if Random(2) = 0 then
+        begin
+          R := Random(26);
+          RandChar := LETTERS[R];
+        end
+        else
+        begin
+          R := Random(10);
+          RandChar := IntToStr(R);
+        end;
+        chatpw := chatpw + RandChar;
+      end;
+    end;
 
     try
-      // 1. 채팅방 생성
-      if ChatType = 1 then
-      begin
+      FDConnection1.StartTransaction;
+
+      try
+        // 1. 채팅방 생성 (num을 선택된 친구 수 + 1로 설정)
+        if ChatType = 1 then
+        begin
+          FDQuery1.SQL.Text :=
+            'INSERT INTO chat(chatroomname, ChatType, chatpw, num) ' +
+            'VALUES(:chatroomname, :ChatType, :chatpw, :num) ';
+          FDQuery1.ParamByName('chatroomname').AsWideString := chatroomname;
+          FDQuery1.ParamByName('chatpw').AsString := chatpw;
+          FDQuery1.ParamByName('ChatType').AsInteger := ChatType;
+          FDQuery1.ParamByName('num').AsInteger := SelectedFriends.Count + 1;
+          FDQuery1.ExecSQL;
+        end
+        else if ChatType = 2 then
+        begin
+          FDQuery1.SQL.Text :=
+            'INSERT INTO chat(chatroomname, ChatType, num) ' +
+            'VALUES(:chatroomname, :ChatType, :num) ';
+          FDQuery1.ParamByName('chatroomname').AsWideString := chatroomname;
+          FDQuery1.ParamByName('ChatType').AsInteger := ChatType;
+          FDQuery1.ParamByName('num').AsInteger := SelectedFriends.Count + 1;
+          FDQuery1.ExecSQL;
+        end;
+
+        // 2. 생성된 채팅방 ID 가져오기
         FDQuery1.SQL.Text :=
-          'INSERT INTO chat(chatroomname, ChatType, chatpw, num) ' +
-          'VALUES(:chatroomname, :ChatType, :chatpw, 2)';
+          'SELECT ChatRoomID FROM chat WHERE chatroomname = :chatroomname ' +
+          'ORDER BY ChatRoomID DESC LIMIT 1';
         FDQuery1.ParamByName('chatroomname').AsWideString := chatroomname;
-        FDQuery1.ParamByName('chatpw').AsString := chatpw;
-        FDQuery1.ParamByName('ChatType').AsInteger := ChatType;
-        FDQuery1.ExecSQL;
-      end
-      else if ChatType = 2 then
-      begin
+        FDQuery1.Open;
+
+        if FDQuery1.RecordCount = 0 then
+          raise Exception.Create('채팅방 생성에 실패했습니다.');
+
+        ChatRoomID := FDQuery1.FieldByName('ChatRoomID').AsInteger;
+        FDQuery1.Close;
+
+        // 3. chat_user 테이블에 방 생성자 추가
         FDQuery1.SQL.Text :=
-          'INSERT INTO chat(chatroomname, ChatType, num) ' +
-          'VALUES(:chatroomname, :ChatType, 2)';
-        FDQuery1.ParamByName('chatroomname').AsWideString := chatroomname;
-        FDQuery1.ParamByName('ChatType').AsInteger := ChatType;
+          'INSERT INTO chat_user(ChatRoomId, UserNo) ' +
+          'VALUES(:ChatRoomId, :UserNo)';
+        FDQuery1.ParamByName('ChatRoomId').AsInteger := ChatRoomID;
+        FDQuery1.ParamByName('UserNo').AsInteger := userno;
         FDQuery1.ExecSQL;
+
+        // 4. chat_user 테이블에 선택된 모든 친구 추가
+        InvitedNames := '';
+        for I := 0 to SelectedFriends.Count - 1 do
+        begin
+          Friend := SelectedFriends[I];
+
+          FDQuery1.SQL.Text :=
+            'INSERT INTO chat_user(ChatRoomId, UserNo) ' +
+            'VALUES(:ChatRoomId, :UserNo)';
+          FDQuery1.ParamByName('ChatRoomId').AsInteger := ChatRoomID;
+          FDQuery1.ParamByName('UserNo').AsInteger := Friend.UserNo;
+          FDQuery1.ExecSQL;
+
+          // 초대된 친구 이름 목록 생성
+          if InvitedNames <> '' then
+            InvitedNames := InvitedNames + ', ';
+          InvitedNames := InvitedNames + Friend.UserName;
+        end;
+
+        FDConnection1.Commit;
+
+        // 5. 채팅방 초기화
+        Form1.InitializeChat(ChatRoomID, 0, userno, CurrentUser.Name, chatroomname);
+
+        // 6. 성공 메시지
+        if ChatType = 1 then
+          ShowMessage('채팅방이 생성되었습니다!' + #13#10 +
+                      '방 번호: ' + IntToStr(ChatRoomID) + #13#10 +
+                      '방 비밀번호: ' + chatpw + #13#10 +
+                      '참여 인원: ' + IntToStr(SelectedFriends.Count + 1) + '명' + #13#10 +
+                      '초대된 친구: ' + InvitedNames)
+        else
+          ShowMessage('채팅방이 생성되었습니다!' + #13#10 +
+                      '방 번호: ' + IntToStr(ChatRoomID) + #13#10 +
+                      '참여 인원: ' + IntToStr(SelectedFriends.Count + 1) + '명' + #13#10 +
+                      '초대된 친구: ' + InvitedNames);
+
+
+        Form8.Close;
+        Form1.Show;
+        Self.Close;
+
+      except
+        on E: Exception do
+        begin
+          FDConnection1.Rollback;
+          ShowMessage('채팅방 생성 중 오류 발생: ' + E.Message);
+        end;
       end;
-
-      // 2. 생성된 채팅방 ID 가져오기
-      FDQuery1.SQL.Text :=
-        'SELECT ChatRoomID FROM chat WHERE chatroomname = :chatroomname ' +
-        'ORDER BY ChatRoomID DESC LIMIT 1';
-      FDQuery1.ParamByName('chatroomname').AsWideString := chatroomname;
-      FDQuery1.Open;
-
-      if FDQuery1.RecordCount = 0 then
-        raise Exception.Create('채팅방 생성에 실패했습니다.');
-
-      ChatRoomID := FDQuery1.FieldByName('ChatRoomID').AsInteger;
-      FDQuery1.Close;
-
-      // 3. chat_user 테이블에 방 생성자 추가
-      FDQuery1.SQL.Text :=
-        'INSERT INTO chat_user(ChatRoomId, UserNo) ' +
-        'VALUES(:ChatRoomId, :UserNo)';
-      FDQuery1.ParamByName('ChatRoomId').AsInteger := ChatRoomID;
-      FDQuery1.ParamByName('UserNo').AsInteger := userno;
-      FDQuery1.ExecSQL;
-
-      // 4. chat_user 테이블에 초대된 친구 추가
-      FDQuery1.SQL.Text :=
-        'INSERT INTO chat_user(ChatRoomId, UserNo) ' +
-        'VALUES(:ChatRoomId, :UserNo)';
-      FDQuery1.ParamByName('ChatRoomId').AsInteger := ChatRoomID;
-      FDQuery1.ParamByName('UserNo').AsInteger := SelectedFriend.UserNo;
-      FDQuery1.ExecSQL;
-
-      FDConnection1.Commit;
-
-      // 5. 채팅방 초기화
-      Form1.InitializeChat(ChatRoomID, 0, userno, CurrentUser.Name, chatroomname);
-
-      // 6. 성공 메시지
-      if ChatType = 1 then
-        ShowMessage('채팅방이 생성되었습니다!' + #13#10 +
-                    '방 번호: ' + IntToStr(ChatRoomID) + #13#10 +
-                    '방 비밀번호: ' + chatpw + #13#10 +
-                    '초대된 친구: ' + SelectedFriend.UserName)
-      else
-        ShowMessage('채팅방이 생성되었습니다!' + #13#10 +
-                    '방 번호: ' + IntToStr(ChatRoomID) + #13#10 +
-                    '초대된 친구: ' + SelectedFriend.UserName);
-
-      Form8.Close;
-      Self.Close;
 
     except
       on E: Exception do
-      begin
-        FDConnection1.Rollback;
-        ShowMessage('채팅방 생성 중 오류 발생: ' + E.Message);
-      end;
+        ShowMessage('데이터베이스 오류: ' + E.Message);
     end;
 
-  except
-    on E: Exception do
-      ShowMessage('데이터베이스 오류: ' + E.Message);
+  finally
+    SelectedFriends.Free;
   end;
 end;
 
