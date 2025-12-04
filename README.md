@@ -94,7 +94,9 @@
 + 추가할 부분 : 내가 친구 요청 보낸 유저 확인, 나에게 온 친구 요청 확인, 나와 친구인 유저 확인
 + 내가 친구 요청 보낸 유저 확인 : select receiver_id from friend where requester_id = myid;
 + 나에게 온 친구 요청 확인 : select requester_id from friend where receiver_id = myid; 
-+ 나와 친구인 유저 확인 : 
++ 나와 친구인 유저 확인
+
+2, 채팅방 생성 시 한번에 1명의 유저만 선택 가능, 한번에 여러 유저를 선택 가능하도록 변경, 한국어 ???로 표시 
 
 ---
   
