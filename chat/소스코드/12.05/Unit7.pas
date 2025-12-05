@@ -50,6 +50,7 @@ type
     procedure PanelHeaderMouseDown(Sender: TObject; Button: TMouseButton;
       Shift: TShiftState; X, Y: Integer);
     procedure LabelCloseClick(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
   private
     procedure ChatPanelClick(Sender: TObject);
   public
@@ -62,7 +63,7 @@ var
 
 implementation
 
-uses unit1,unit2,unit3,unit4,unit5,unit6,unit8,unit10,unit11;
+uses unit1,unit2,unit3,unit4,unit5,unit6,unit8,unit10,unit11,unit14;
 
 {$R *.dfm}
 
@@ -96,6 +97,18 @@ begin
   begin
     ReleaseCapture;
     SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0);
+  end;
+end;
+
+procedure TForm7.SpeedButton1Click(Sender: TObject);
+var
+  FriendForm: TForm14;
+begin
+  FriendForm := TForm14.Create(Self);
+  try
+    FriendForm.ShowModal;
+  finally
+    FriendForm.Free;
   end;
 end;
 
@@ -177,7 +190,6 @@ begin
       LastMsgLabel.Tag := ChatPanel.Tag;
       LastMsgLabel.OnClick := ChatPanelClick;
 
-      // ✅ 실시간 COUNT 사용
       FDQuery1.Close;
       FDQuery1.SQL.Text :=
         'SELECT COUNT(userno) AS num FROM chat_user WHERE ChatRoomId = :Roomid';
@@ -230,7 +242,6 @@ begin
   begin
     if not IsLoggedIn then
     begin
-      // 새로고침 타이밍에 로그아웃을 하여서 발생한 오류 상황
       ShowMessage('로그인이 필요합니다.');
       close;
       Exit;
@@ -268,7 +279,6 @@ begin
     qryChatRoomName := FDQueryMembers.FieldByName('chatroomname').AsString;
     qryName := FDQueryMembers.FieldByName('name').AsString;
 
-    // ✅ 실시간 COUNT
     FDQueryMembers.Close;
     FDQueryMembers.SQL.Text :=
       'SELECT COUNT(userno) AS num FROM chat_user WHERE ChatRoomId = :Roomid';
@@ -293,23 +303,16 @@ begin
       end;
     end;
 
-//    FDQueryMembers.SQL.Text := 'select is_logged_in from user where userno = :userno ';
-//    FDQueryMembers.ParamByName('userno').AsInteger := userno;
-//    FDQueryMembers.Open;
-//
-//    if not FDQueryMembers.FieldByName('is_logged_in').AsBoolean then
-//    begin
-      Form1.JoinChatRoom(qryChatRoomId, qryNum, qryChatRoomName);
-      Form1.InitializeChat(qryChatRoomId, qryNum, qryUserNo, qryName, qryChatRoomName);
-      ShowMessage('채팅방 ' + IntToStr(qryChatRoomId) + ' 입장 (방명: ' + qryChatRoomName + ')');
+    Form1.JoinChatRoom(qryChatRoomId, qryNum, qryChatRoomName);
+    Form1.InitializeChat(qryChatRoomId, qryNum, qryUserNo, qryName, qryChatRoomName);
+    ShowMessage('채팅방 ' + IntToStr(qryChatRoomId) + ' 입장 (방명: ' + qryChatRoomName + ')');
 
-      Form1.Position := poDesigned;
-      Form1.Show;
-      Self.Hide;
-//    end;
-    finally
-      FDQueryMembers.Close;
-    end;
+    Form1.Position := poDesigned;
+    Form1.Show;
+    Self.Hide;
+  finally
+    FDQueryMembers.Close;
+  end;
 end;
 
 procedure TForm7.Button2Click(Sender: TObject);

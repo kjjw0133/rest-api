@@ -24,8 +24,6 @@ object Form7: TForm7
     ParentBackground = False
     TabOrder = 0
     OnMouseDown = PanelHeaderMouseDown
-    ExplicitLeft = -8
-    ExplicitTop = 8
     object LabelTitle: TLabel
       Left = 78
       Top = 10
@@ -81,12 +79,11 @@ object Form7: TForm7
     Color = clWhite
     ParentBackground = False
     TabOrder = 1
-    ExplicitWidth = 422
     object Edit2: TEdit
       Left = 56
       Top = 13
       Width = 120
-      Height = 40
+      Height = 38
       Color = 16250871
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -101,7 +98,7 @@ object Form7: TForm7
       Left = 181
       Top = 13
       Width = 120
-      Height = 40
+      Height = 38
       Color = 16250871
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -151,8 +148,6 @@ object Form7: TForm7
     Color = clWhite
     ParentBackground = False
     TabOrder = 3
-    ExplicitTop = 646
-    ExplicitWidth = 478
     object Button4: TButton
       Left = 24
       Top = 10
@@ -188,14 +183,13 @@ object Form7: TForm7
     Height = 510
     Align = alLeft
     TabOrder = 4
-    ExplicitTop = 8
-    ExplicitHeight = 632
     object SpeedButton1: TSpeedButton
       Left = 0
       Top = 24
       Width = 42
       Height = 49
       Caption = #52828#44396' '#52285
+      OnClick = SpeedButton1Click
     end
     object SpeedButton2: TSpeedButton
       Left = 0
