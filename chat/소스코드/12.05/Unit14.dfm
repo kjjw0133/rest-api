@@ -1,4 +1,4 @@
-object Form7: TForm7
+object Form14: TForm14
   Left = 0
   Top = 0
   Caption = 'ChatApp'
@@ -11,41 +11,36 @@ object Form7: TForm7
   Font.Name = 'Segoe UI'
   Font.Style = []
   Position = poScreenCenter
-  OnCreate = FormCreate
   TextHeight = 15
+  object userCountLabel: TLabel
+    Left = 63
+    Top = 113
+    Width = 96
+    Height = 44
+    Caption = #52828#44396' ??'#47749
+  end
   object PanelHeader: TPanel
     Left = 0
     Top = 0
     Width = 436
-    Height = 60
+    Height = 43
     Align = alTop
     BevelOuter = bvNone
     Color = clWhite
     ParentBackground = False
     TabOrder = 0
-    OnMouseDown = PanelHeaderMouseDown
-    ExplicitLeft = -8
-    ExplicitTop = 8
     object LabelTitle: TLabel
-      Left = 78
+      Left = 70
       Top = 10
-      Width = 86
+      Width = 42
       Height = 30
-      Caption = 'ChatApp'
+      Caption = #52828#44396
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
       Font.Height = -21
       Font.Name = 'Segoe UI'
       Font.Style = [fsBold]
       ParentFont = False
-    end
-    object SpeedButtonMenu: TSpeedButton
-      Left = 336
-      Top = 10
-      Width = 30
-      Height = 30
-      Caption = #9881
-      Flat = True
     end
     object SpeedButtonSearch: TSpeedButton
       Left = 300
@@ -68,12 +63,11 @@ object Form7: TForm7
       Font.Name = 'Segoe UI'
       Font.Style = []
       ParentFont = False
-      OnClick = LabelCloseClick
     end
   end
   object PanelActions: TPanel
     Left = 0
-    Top = 60
+    Top = 43
     Width = 436
     Height = 70
     Align = alTop
@@ -81,12 +75,12 @@ object Form7: TForm7
     Color = clWhite
     ParentBackground = False
     TabOrder = 1
-    ExplicitWidth = 422
+    ExplicitTop = 37
     object Edit2: TEdit
       Left = 56
-      Top = 13
-      Width = 120
-      Height = 40
+      Top = 6
+      Width = 380
+      Height = 51
       Color = 16250871
       Font.Charset = DEFAULT_CHARSET
       Font.Color = clWindowText
@@ -95,101 +89,26 @@ object Form7: TForm7
       Font.Style = []
       ParentFont = False
       TabOrder = 0
-      TextHint = #48169' '#48264#54840
-    end
-    object Edit1: TEdit
-      Left = 181
-      Top = 13
-      Width = 120
-      Height = 40
-      Color = 16250871
-      Font.Charset = DEFAULT_CHARSET
-      Font.Color = clWindowText
-      Font.Height = -21
-      Font.Name = 'Segoe UI'
-      Font.Style = []
-      ParentFont = False
-      PasswordChar = #9679
-      TabOrder = 1
-      TextHint = #48708#48128#48264#54840
-    end
-    object Button6: TButton
-      Left = 308
-      Top = 13
-      Width = 55
-      Height = 40
-      Caption = #51077#51109
-      TabOrder = 2
-      OnClick = Button6Click
-    end
-    object Button3: TButton
-      Left = 367
-      Top = 13
-      Width = 55
-      Height = 40
-      Caption = #49373#49457
-      TabOrder = 3
-      OnClick = Button3Click
     end
   end
   object ScrollBox1: TScrollBox
-    Left = 56
-    Top = 134
-    Width = 380
-    Height = 510
+    Left = 48
+    Top = 137
+    Width = 395
+    Height = 508
     Color = clWhite
     ParentColor = False
     TabOrder = 2
   end
-  object PanelBottom: TPanel
-    Left = 0
-    Top = 640
-    Width = 436
-    Height = 60
-    Align = alBottom
-    BevelOuter = bvNone
-    Color = clWhite
-    ParentBackground = False
-    TabOrder = 3
-    ExplicitTop = 646
-    ExplicitWidth = 478
-    object Button4: TButton
-      Left = 24
-      Top = 10
-      Width = 120
-      Height = 40
-      Caption = #47196#44536#51064
-      TabOrder = 0
-      OnClick = Button4Click
-    end
-    object Button1: TButton
-      Left = 150
-      Top = 10
-      Width = 120
-      Height = 40
-      Caption = #54924#50896#44032#51077
-      TabOrder = 1
-      OnClick = Button1Click
-    end
-    object Button2: TButton
-      Left = 280
-      Top = 10
-      Width = 120
-      Height = 40
-      Caption = #47560#51060#54168#51060#51648
-      TabOrder = 2
-      OnClick = Button2Click
-    end
-  end
   object Panel1: TPanel
     Left = 0
-    Top = 130
+    Top = 113
     Width = 57
-    Height = 510
+    Height = 527
     Align = alLeft
-    TabOrder = 4
-    ExplicitTop = 8
-    ExplicitHeight = 632
+    TabOrder = 3
+    ExplicitTop = 130
+    ExplicitHeight = 510
     object SpeedButton1: TSpeedButton
       Left = 0
       Top = 24
@@ -212,6 +131,17 @@ object Form7: TForm7
       Caption = #45908#48372#44592'('#47560#51060' '#54168#51060#51648')'
     end
   end
+  object PanelBottom: TPanel
+    Left = 0
+    Top = 640
+    Width = 436
+    Height = 60
+    Align = alBottom
+    BevelOuter = bvNone
+    Color = clWhite
+    ParentBackground = False
+    TabOrder = 4
+  end
   object FDConnection1: TFDConnection
     Params.Strings = (
       'Server=localhost'
@@ -233,7 +163,6 @@ object Form7: TForm7
     Top = 424
   end
   object Timer1: TTimer
-    OnTimer = Timer1Timer
     Left = 350
     Top = 376
   end

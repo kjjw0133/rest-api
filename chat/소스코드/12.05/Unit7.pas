@@ -36,6 +36,10 @@ type
     Timer1: TTimer;
     FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink;
     LabelClose: TLabel;
+    Panel1: TPanel;
+    SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
+    SpeedButton3: TSpeedButton;
     procedure Button4Click(Sender: TObject);
     procedure Button1Click(Sender: TObject);
     procedure Button3Click(Sender: TObject);
