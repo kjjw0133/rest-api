@@ -104,12 +104,22 @@ procedure TForm7.SpeedButton1Click(Sender: TObject);
 var
   FriendForm: TForm14;
 begin
-  FriendForm := TForm14.Create(Self);
+  // Form7 숨기기
+  Self.Hide;
+  Application.ProcessMessages;  // ✅ 핵심: Hide가 완전히 처리되도록 대기
+
+  // Form14 생성 및 표시
+  FriendForm := TForm14.Create(Application);
   try
+    FriendForm.Position := poScreenCenter;
     FriendForm.ShowModal;
   finally
     FriendForm.Free;
   end;
+
+  // Form7 다시 표시
+  Self.Show;
+  Self.BringToFront;
 end;
 
 procedure TForm7.LabelCloseClick(Sender: TObject);
@@ -371,7 +381,7 @@ begin
     Button6.Enabled := False;
     Button2.Enabled := False;
     Button3.Enabled := False;
-    Button4.Caption := '로그인';
+    Button4.Caption := '2';
 
     ScrollBox1.DestroyComponents;
     ShowMessage('로그아웃 되었습니다.');
