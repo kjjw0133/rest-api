@@ -130,9 +130,9 @@ object Form7: TForm7
     end
   end
   object ScrollBox1: TScrollBox
-    Left = 56
+    Left = 53
     Top = 134
-    Width = 380
+    Width = 388
     Height = 510
     Color = clWhite
     ParentColor = False
@@ -178,13 +178,14 @@ object Form7: TForm7
   end
   object Panel1: TPanel
     Left = 0
-    Top = 130
+    Top = 134
     Width = 57
     Height = 510
-    Align = alLeft
+    Color = clSilver
+    ParentBackground = False
     TabOrder = 4
     object SpeedButton1: TSpeedButton
-      Left = 0
+      Left = 5
       Top = 24
       Width = 42
       Height = 49
@@ -192,14 +193,14 @@ object Form7: TForm7
       OnClick = SpeedButton1Click
     end
     object SpeedButton2: TSpeedButton
-      Left = 0
+      Left = 5
       Top = 96
       Width = 42
       Height = 49
       Caption = #47700#51064' '#52292#54021' '#52285
     end
     object SpeedButton3: TSpeedButton
-      Left = 0
+      Left = 5
       Top = 168
       Width = 42
       Height = 49
@@ -223,8 +224,8 @@ object Form7: TForm7
     Connection = FDConnection1
     SQL.Strings = (
       'select * from user')
-    Left = 312
-    Top = 424
+    Left = 192
+    Top = 408
   end
   object Timer1: TTimer
     OnTimer = Timer1Timer
@@ -233,7 +234,7 @@ object Form7: TForm7
   end
   object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
     VendorLib = 'C:\MYPROGRAM\delphi\mysql\mysql-5.7.33-win32\lib\libmysql.dll'
-    Left = 208
-    Top = 352
+    Left = 112
+    Top = 400
   end
 end

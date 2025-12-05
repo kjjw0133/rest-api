@@ -16,7 +16,7 @@ object Form10: TForm10
   object Label1: TLabel
     Left = 0
     Top = 80
-    Width = 513
+    Width = 79
     Height = 32
     Alignment = taCenter
     Caption = #45236' '#51221#48372
@@ -35,11 +35,11 @@ object Form10: TForm10
     Caption = #51060#47492
   end
   object Label4: TLabel
-    Left = 273
-    Top = 349
-    Width = 48
+    Left = 280
+    Top = 229
+    Width = 51
     Height = 15
-    Caption = #48708#48128#48264#54840
+    Caption = #50976#51200' '#48264#54840
     Visible = False
   end
   object Label3: TLabel
@@ -72,10 +72,10 @@ object Form10: TForm10
   end
   object Label8: TLabel
     Left = 200
-    Top = 349
-    Width = 48
+    Top = 229
+    Width = 51
     Height = 15
-    Caption = #48708#48128#48264#54840
+    Caption = #50976#51200' '#48264#54840
     Visible = False
   end
   object Label9: TLabel

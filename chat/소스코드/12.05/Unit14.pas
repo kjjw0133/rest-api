@@ -32,6 +32,7 @@ type
     Timer1: TTimer;
     FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink;
     lbFriends: TListBox;
+    Button1: TButton;
 
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
@@ -42,6 +43,7 @@ type
       var Height: Integer);
     procedure SpeedButton2Click(Sender: TObject);
     procedure LabelCloseClick(Sender: TObject);
+    procedure Button1Click(Sender: TObject);
   private
     FFriendManager: TFriendManager;
     FFilteredFriends: TList<TFriendInfo>;
@@ -52,7 +54,7 @@ type
 
 implementation
 
-uses unit2;
+uses unit2, unit16;
 
 {$R *.dfm}
 
@@ -121,6 +123,11 @@ begin
   finally
     lbFriends.Items.EndUpdate;
   end;
+end;
+
+procedure TForm14.Button1Click(Sender: TObject);
+begin
+  form16.ShowModal;
 end;
 
 procedure TForm14.Edit2Change(Sender: TObject);

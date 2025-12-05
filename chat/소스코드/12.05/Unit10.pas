@@ -58,7 +58,7 @@ procedure TForm10.FormCreate(Sender: TObject);
 begin
 
   FDQueryMembers.Close;
-  FDQueryMembers.SQL.Text := ' select name, id, pw , email from user where userno = :userno ';
+  FDQueryMembers.SQL.Text := ' select name, id, userno , email from user where userno = :userno ';
   FDQueryMembers.ParamByName('userno').AsInteger := CurrentUser.UserNo;
   FDQueryMembers.Open;
 
@@ -66,7 +66,7 @@ begin
   begin
     Label6.Caption := FDQueryMembers.FieldByName('name').AsString;
     Label7.Caption := FDQueryMembers.FieldByName('id').AsString;
-    Label8.Caption := FDQueryMembers.FieldByName('pw').AsString;
+    Label4.Caption := FDQueryMembers.FieldByName('userno').AsString;
     Label9.Caption := FDQueryMembers.FieldByName('email').AsString;
   end
   else

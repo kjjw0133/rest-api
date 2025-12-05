@@ -101,6 +101,7 @@ object Form14: TForm14
     Height = 527
     Align = alLeft
     TabOrder = 2
+    ExplicitHeight = 408
     object SpeedButton1: TSpeedButton
       Left = 0
       Top = 24
@@ -136,6 +137,8 @@ object Form14: TForm14
     TabOrder = 3
     OnDrawItem = lbFriendsDrawItem
     OnMeasureItem = lbFriendsMeasureItem
+    ExplicitLeft = 63
+    ExplicitTop = 119
   end
   object PanelBottom: TPanel
     Left = 0
@@ -148,6 +151,15 @@ object Form14: TForm14
     ParentBackground = False
     TabOrder = 4
   end
+  object Button1: TButton
+    Left = 300
+    Top = 12
+    Width = 75
+    Height = 25
+    Caption = #52828#44396' '#52628#44032
+    TabOrder = 5
+    OnClick = Button1Click
+  end
   object FDConnection1: TFDConnection
     Params.Strings = (
       'Server=localhost'
@@ -158,8 +170,8 @@ object Form14: TForm14
       'DriverID=MySQL')
     Connected = True
     LoginPrompt = False
-    Left = 88
-    Top = 296
+    Left = 176
+    Top = 408
   end
   object FDQueryMembers: TFDQuery
     Connection = FDConnection1

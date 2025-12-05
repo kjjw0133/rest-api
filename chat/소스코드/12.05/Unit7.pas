@@ -104,9 +104,22 @@ procedure TForm7.SpeedButton1Click(Sender: TObject);
 var
   FriendForm: TForm14;
 begin
-  // Form7 숨기기
+  FDQueryMembers.Close;
+  FDQueryMembers.SQL.Text := ' select is_logged_in from user where userno = :userno ';
+  FDQueryMembers.ParamByName('userno').AsInteger := CurrentUser.UserNo;
+  FDQueryMembers.Open;
+
+  if not FDQueryMembers.FieldByName('is_logged_in').AsBoolean then
+  begin
+    if not IsLoggedIn then
+    begin
+      ShowMessage('로그인이 필요합니다.');
+      Exit;
+    end;
+  end;
+
   Self.Hide;
-  Application.ProcessMessages;  // ✅ 핵심: Hide가 완전히 처리되도록 대기
+  Application.ProcessMessages;  // Hide가 완전히 처리되도록 대기
 
   // Form14 생성 및 표시
   FriendForm := TForm14.Create(Application);
@@ -117,7 +130,6 @@ begin
     FriendForm.Free;
   end;
 
-  // Form7 다시 표시
   Self.Show;
   Self.BringToFront;
 end;
