@@ -1,8 +1,8 @@
-# User Management REST API
+REST API
 
 > Delphi (Object Pascal) 기반의 사용자 관리 RESTful API 서버
 
-## 📋 프로젝트 소개
+## 프로젝트 소개
 
 Delphi의 WebBroker 프레임워크와 Indy HTTP Server를 활용하여 구축한 사용자 관리 REST API 서버입니다. 
 회원가입, 로그인, 사용자 정보 CRUD 등의 기능을 제공하며, MySQL 데이터베이스와 연동하여 데이터를 관리합니다.
