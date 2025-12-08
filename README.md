@@ -33,22 +33,6 @@ Delphi의 WebBroker 프레임워크와 Indy HTTP Server를 활용하여 구축�
 -  **RESTful 설계** - HTTP 메서드와 상태 코드 준수
 -  **테스트 클라이언트** - GUI 기반 API 테스트 도구 포함
 
-##  기술 스택
-
-### Backend
-- **Delphi** (Object Pascal)
-- **WebBroker** - 웹 애플리케이션 프레임워크
-- **Indy HTTP Server** - HTTP 서버 (TIdHTTPWebBrokerBridge)
-
-### Database
-- **MySQL** 8.0
-- **FireDAC** - 데이터베이스 액세스 컴포넌트
-- **MySQL Connector** (libmysql.dll)
-
-### 기타
-- **JSON** - 데이터 교환 형식
-- **REST Client** - API 테스트용 클라이언트 GUI
-
 ##  프로젝트 구조
 
 ```
