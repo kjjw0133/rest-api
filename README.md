@@ -102,6 +102,25 @@ CREATE TABLE users (
 - PATCH /api/users/{id} - 사용자 부분 수정
 - DELETE /api/users/{id} - 사용자 삭제
 
+트러블슈팅
+
+문제 1: libmysql.dll 오류
+증상: "Cannot load vendor library"
+해결책:
+
+MySQL Connector 설치 확인
+FDPhysMySQLDriverLink1의 VendorLib 경로를 절대 경로로 지정
+libmysql.dll을 실행 파일과 같은 폴더에 복사
+
+문제 2: 한글 깨짐
+증상: 한글이 ? 또는 깨진 문자로 표시
+해결책:
+
+MySQL 테이블 charset을 utf8mb4로 설정
+FDConnection1 Params에 CharacterSet=utf8mb4 추가
+Response 헤더에 charset=utf-8 포함 확인
+변수 타입 String -> WideString 변경
+
 ## 배운 점 & 개선 사항
 
 ### 배운 점
