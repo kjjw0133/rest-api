@@ -15,10 +15,10 @@ object WebModule1: TWebModule1
   end
   object FDConnection1: TFDConnection
     Params.Strings = (
-      'Server=localhost'
-      'Database=chating app'
-      'User_Name=root'
-      'Password=1234'
+      'Server='
+      'Database= '
+      'User_Name='
+      'Password='
       'CharacterSet=utf8mb4'
       'DriverID=MySQL')
     Connected = True
@@ -28,8 +28,9 @@ object WebModule1: TWebModule1
   end
   object FDPhysMySQLDriverLink1: TFDPhysMySQLDriverLink
     DriverID = 'MySQL'
-    VendorLib = 'C:\MYPROGRAM\delphi\mysql\mysql-5.7.33-win32\lib\libmysql.dll'
+    VendorLib = '\libmysql.dll'
     Left = 530
     Top = 453
   end
 end
+
