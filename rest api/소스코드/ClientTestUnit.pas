@@ -52,7 +52,6 @@ end;
 
 procedure TForm2.FormCreate(Sender: TObject);
 begin
-  // 엔드포인트 목록 초기화
   ComboBoxEndpoint.Items.Clear;
   ComboBoxEndpoint.Items.Add('POST /api/signup - 회원가입');
   ComboBoxEndpoint.Items.Add('POST /api/login - 로그인');
@@ -64,7 +63,6 @@ begin
   ComboBoxEndpoint.Items.Add('PATCH /api/users/{id} - 사용자 수정');
   ComboBoxEndpoint.ItemIndex := 0;
 
-  // 기본 URL 설정
   if EditBaseURL.Text = '' then
     EditBaseURL.Text := 'http://localhost:8080';
 
@@ -178,13 +176,10 @@ begin
     LabelStatus.Caption := '요청 중...';
     Application.ProcessMessages;
 
-    // Base URL 설정
     RESTClient1.BaseURL := EditBaseURL.Text;
 
-    // Resource ID 가져오기
     Resourceld := Trim(EditResourceld.Text);
 
-    // 엔드포인트와 메서드 설정
     RESTRequest1.Params.Clear;
     case ComboBoxEndpoint.ItemIndex of
       0: // POST /api/signup
@@ -242,7 +237,6 @@ begin
     RESTRequest1.Resource := Endpoint;
     RESTRequest1.Method := Method;
 
-    // Request Body 설정 (POST, PUT의 경우)
     if (Method in [TRESTRequestMethod.rmPOST, TRESTRequestMethod.rmPUT, TRESTRequestMethod.rmPATCH]) and
        (MemoRequestBody.Text <> '') then
     begin
@@ -250,10 +244,8 @@ begin
       RESTRequest1.AddBody(MemoRequestBody.Text, TRESTContentType.ctAPPLICATION_JSON);
     end;
 
-    // 요청 실행
     RESTRequest1.Execute;
 
-    // 응답 표시
     MemoResponse.Lines.Clear;
     MemoResponse.Lines.Add('=== Request ===');
     MemoResponse.Lines.Add('URL: ' + RESTClient1.BaseURL + Endpoint);
@@ -271,7 +263,6 @@ begin
     MemoResponse.Lines.Add('Status: ' + IntToStr(RESTResponse1.StatusCode) + ' ' + RESTResponse1.StatusText);
     MemoResponse.Lines.Add('');
 
-    // JSON 포맷팅
     try
       JsonValue := TJSONObject.ParseJSONValue(RESTResponse1.Content);
       if JsonValue <> nil then
@@ -279,7 +270,6 @@ begin
         try
           MemoResponse.Lines.Add(JsonValue.Format);
 
-          // 특별한 응답 메시지 표시
           if JsonValue is TJSONObject then
           begin
             var JsonObj := JsonValue as TJSONObject;
@@ -309,7 +299,6 @@ begin
       MemoResponse.Lines.Add(RESTResponse1.Content);
     end;
 
-    // 상태 표시
     if RESTResponse1.StatusCode = 200 then
       LabelStatus.Caption := '완료! ✓ Status: ' + IntToStr(RESTResponse1.StatusCode)
     else if RESTResponse1.StatusCode = 201 then
@@ -336,3 +325,4 @@ begin
 end;
 
 end.
+
