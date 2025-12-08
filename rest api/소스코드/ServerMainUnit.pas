@@ -54,7 +54,6 @@ begin
   Result := True;
   SetCORSHeaders(Response);
 
-  // POST 요청만 허용
   if Request.MethodType <> mtPost then
   begin
     Response.StatusCode := 405;
@@ -76,7 +75,6 @@ begin
     Username := JsonObj.GetValue<string>('username');
     Password := JsonObj.GetValue<string>('password');
 
-    // 선택적 필드
     if JsonObj.TryGetValue<string>('name', Name) then
       Name := JsonObj.GetValue<string>('name')
     else
@@ -92,7 +90,6 @@ begin
     else
       Phone := '';
 
-    // 중복 체크
     FDQuery1.Close;
     FDQuery1.SQL.Text := 'SELECT COUNT(*) as cnt FROM users WHERE username = :u';
     FDQuery1.ParamByName('u').AsWideString := Username;
@@ -112,18 +109,16 @@ begin
       Exit;
     end;
 
-    // 사용자 생성
     FDQuery1.Close;
     FDQuery1.SQL.Text :=
       'INSERT INTO users (username, password, name, email, phone) VALUES (:u, :p, :n, :e, :ph)';
     FDQuery1.ParamByName('u').AsWideString := Username;
-    FDQuery1.ParamByName('p').AsWideString := Password; // ※ 실제로는 해싱 필요
+    FDQuery1.ParamByName('p').AsWideString := Password; 
     FDQuery1.ParamByName('n').AsWideString := Name;
     FDQuery1.ParamByName('e').AsWideString := Email;
     FDQuery1.ParamByName('ph').AsWideString := Phone;
     FDQuery1.ExecSQL;
 
-    // 생성된 ID 가져오기
     FDQuery1.Close;
     FDQuery1.SQL.Text := 'SELECT LAST_INSERT_ID() as new_id';
     FDQuery1.Open;
@@ -153,7 +148,6 @@ begin
   Result := True;
   SetCORSHeaders(Response);
 
-  // POST 요청만 허용
   if Request.MethodType <> mtPost then
   begin
     Response.StatusCode := 405;
@@ -176,7 +170,6 @@ begin
       Username := JsonObj.GetValue<string>('username');
       Password := JsonObj.GetValue<string>('password');
 
-      // 사용자 인증
       FDQuery1.Close;
       FDQuery1.SQL.Text :=
         'SELECT id, username, name, email, IFNULL(is_logged_in, 0) as is_logged_in FROM users WHERE username = :u AND password = :p';
@@ -191,7 +184,7 @@ begin
           UserId := FDQuery1.FieldByName('id').AsInteger;
           IsLoggedIn := FDQuery1.FieldByName('is_logged_in').AsInteger;
 
-          // 이미 로그인 상태인지 확인 (선택사항 - 중복 로그인 허용하려면 주석 처리)
+          // 중복 로그인 허용하려면 주석 처리
           {
           if IsLoggedIn = 1 then
           begin
@@ -203,13 +196,11 @@ begin
           end;
           }
 
-          // 로그인 상태를 1로 업데이트
           FDQuery1.Close;
           FDQuery1.SQL.Text := 'UPDATE users SET is_logged_in = 1 WHERE id = :id';
           FDQuery1.ParamByName('id').AsInteger := UserId;
           FDQuery1.ExecSQL;
 
-          // 업데이트된 사용자 정보 다시 조회
           FDQuery1.Close;
           FDQuery1.SQL.Text :=
             'SELECT id, username, name, email FROM users WHERE id = :id';
@@ -221,7 +212,6 @@ begin
           ResultObj.AddPair('id', TJSONNumber.Create(FDQuery1.FieldByName('id').AsInteger));
           ResultObj.AddPair('username', FDQuery1.FieldByName('username').AsWideString);
 
-          // name과 email이 NULL일 수 있으므로 안전하게 처리
           if not FDQuery1.FieldByName('name').IsNull then
             ResultObj.AddPair('name', FDQuery1.FieldByName('name').AsWideString)
           else
@@ -238,7 +228,7 @@ begin
         begin
           ResultObj.AddPair('success', TJSONBool.Create(False));
           ResultObj.AddPair('message', '아이디 또는 비밀번호가 올바르지 않습니다');
-          Response.StatusCode := 401; // Unauthorized
+          Response.StatusCode := 401; 
         end;
 
         Response.Content := ResultObj.Format;
@@ -273,7 +263,6 @@ begin
   Result := True;
   SetCORSHeaders(Response);
 
-  // POST 요청만 허용
   if Request.MethodType <> mtPost then
   begin
     Response.StatusCode := 405;
@@ -294,7 +283,6 @@ begin
   try
     Username := JsonObj.GetValue<string>('username');
 
-    // 사용자 존재 여부 확인
     FDQuery1.Close;
     FDQuery1.SQL.Text := 'SELECT COUNT(*) as cnt FROM users WHERE username = :u';
     FDQuery1.ParamByName('u').AsWideString := Username;
@@ -313,8 +301,7 @@ begin
       end;
       Exit;
     end;
-
-    // 로그인 상태를 0으로 업데이트
+    
     FDQuery1.Close;
     FDQuery1.SQL.Text := 'UPDATE users SET is_logged_in = 0 WHERE username = :u';
     FDQuery1.ParamByName('u').AsWideString := Username;
@@ -363,7 +350,6 @@ begin
     JsonArray := TJSONArray.Create;
     try
       FDQuery1.Close;
-      // IFNULL을 사용하여 NULL을 0으로 변환
       FDQuery1.SQL.Text := 'SELECT id, username, name, email, phone, IFNULL(is_logged_in, 0) as is_logged_in FROM users';
       FDQuery1.Open;
 
@@ -373,7 +359,6 @@ begin
         JsonObj.AddPair('id', TJSONNumber.Create(FDQuery1.FieldByName('id').AsInteger));
         JsonObj.AddPair('username', FDQuery1.FieldByName('username').AsWideString);
 
-        // NULL 값 안전하게 처리
         if not FDQuery1.FieldByName('name').IsNull then
           JsonObj.AddPair('name', FDQuery1.FieldByName('name').AsWideString)
         else
@@ -389,7 +374,6 @@ begin
         else
           JsonObj.AddPair('phone', '');
 
-        // IFNULL 사용했으므로 안전하게 AsInteger 가능
         JsonObj.AddPair('is_logged_in', TJSONBool.Create(
           FDQuery1.FieldByName('is_logged_in').AsInteger = 1));
 
@@ -410,7 +394,6 @@ begin
     JsonObj := TJSONObject.Create;
     try
       FDQuery1.Close;
-      // IFNULL을 사용하여 NULL을 0으로 변환
       FDQuery1.SQL.Text :=
         'SELECT id, username, name, email, phone, IFNULL(is_logged_in, 0) as is_logged_in FROM users WHERE id = :id';
       FDQuery1.ParamByName('id').AsInteger := StrToIntDef(UserId, 0);
@@ -421,7 +404,6 @@ begin
         JsonObj.AddPair('id', TJSONNumber.Create(FDQuery1.FieldByName('id').AsInteger));
         JsonObj.AddPair('username', FDQuery1.FieldByName('username').AsWideString);
 
-        // NULL 값 안전하게 처리
         if not FDQuery1.FieldByName('name').IsNull then
           JsonObj.AddPair('name', FDQuery1.FieldByName('name').AsWideString)
         else
@@ -437,7 +419,6 @@ begin
         else
           JsonObj.AddPair('phone', '');
 
-        // IFNULL 사용했으므로 안전하게 AsInteger 가능
         JsonObj.AddPair('is_logged_in', TJSONBool.Create(
           FDQuery1.FieldByName('is_logged_in').AsInteger = 1));
       end
@@ -503,7 +484,6 @@ begin
     try
       ResultObj := TJSONObject.Create;
       try
-        // 기존 값 조회
         FDQuery1.Close;
         FDQuery1.SQL.Text :=
           'SELECT username, password, name, email, phone FROM users WHERE id = :id';
@@ -518,7 +498,6 @@ begin
           Exit;
         end;
 
-        // 기존값 유지 + PATCH 값만 업데이트
         var NewUsername  := FDQuery1.FieldByName('username').AsString;
         var NewPassword  := FDQuery1.FieldByName('password').AsString;
         var NewName  := FDQuery1.FieldByName('name').AsString;
@@ -584,7 +563,6 @@ var
   JsonObj: TJSONObject;
   JsonArray: TJSONArray;
 begin
-  // OPTIONS 요청 처리 (CORS preflight)
   if Request.Method = 'OPTIONS' then
   begin
     SetCORSHeaders(Response);
@@ -593,7 +571,6 @@ begin
     Exit;
   end;
 
-  // 루트 경로 처리 - API 정보 제공
   if (Request.PathInfo = '/') or (Request.PathInfo = '') then
   begin
     SetCORSHeaders(Response);
@@ -608,19 +585,14 @@ begin
     Response.Content := TFile.ReadAllText('C:\MYPROGRAM\delphi\rest api - 복사본\Win32\Debug\Untitled2.htm');
     Handled := True;
   end
-  // 회원가입 처리
   else if Request.PathInfo = '/api/signup' then
     Handled := HandleSignup(Request, Response)
-  // 로그인 처리
   else if Request.PathInfo = '/api/login' then
     Handled := HandleLogin(Request, Response)
-  // 로그아웃 처리
   else if Request.PathInfo = '/api/logout' then
     Handled := HandleLogout(Request, Response)
-  // 사용자 API 처리
   else if Request.PathInfo.StartsWith('/api/users') then
     Handled := HandleUsers(Request, Response)
-  // 그 외 잘못된 경로
   else
   begin
     SetCORSHeaders(Response);
@@ -631,4 +603,5 @@ begin
 end;
 
 end.
+
 
